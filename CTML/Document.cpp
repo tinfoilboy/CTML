@@ -1,3 +1,7 @@
+/*
+	CTML - written by Tinfoilboy
+	uses the MIT License (https://github.com/tinfoilboy/CFML/blob/master/LICENSE)
+*/
 #include "Document.h"
 
 namespace CTML {
