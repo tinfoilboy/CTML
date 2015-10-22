@@ -47,7 +47,10 @@ namespace CTML {
 			// if we have m_content to append
 			if (!m_content.empty()) {
 				// append the m_content to the node, if readability is wanted, add four spaces to the m_content and add a new line
-				elem += ((readable) ? indentContent : "") + m_content + ((readable) ? "\n" : "");
+				if (!readable)
+					elem += m_content;
+				else
+					elem += this->GetFormattedContent(indentContent);
 			}
 			// get every child node from the m_children list
 			for (unsigned int i = 0; i < m_children.size(); i++) {
@@ -143,6 +146,23 @@ namespace CTML {
 			m_classes.erase(findIndex, className.size());
 		}
 		return *this;
+	}
+	
+	Node& Node::SetUseBr(bool useBr) {
+		this->useBrForNewLine = useBr;
+		return *this;
+	}
+
+	std::string Node::GetFormattedContent(std::string indent) {
+		std::string newline = ((this->useBrForNewLine) ? "\n" + indent + "<br>\n" : "\n");
+		std::string result;
+		std::istringstream iss(m_content);
+		// iterate through each line in this node
+		for (std::string line; std::getline(iss, line);)
+		{
+			result += indent + line + newline;
+		}
+		return result;
 	}
 
 	Node::~Node() {

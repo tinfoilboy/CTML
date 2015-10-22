@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <algorithm>
 
@@ -20,6 +21,8 @@ namespace CTML {
 		std::vector<Node> m_children;
 		// a map of attributes, name is the attribute name and the value is the attribute value
 		std::map<std::string, std::string> m_attributes;
+		// should new lines in m_content be represented with a br tag
+		bool useBrForNewLine = false;
 	public:
 		Node() {}
 		// create a node with the name specified
@@ -33,6 +36,9 @@ namespace CTML {
 		Node& SetContent(std::string text);
 		Node& ToggleClass(std::string className);
 		Node& AppendChild(Node child);
+		Node& SetUseBr(bool useBr);
 		~Node();
+	private:
+		std::string GetFormattedContent(std::string indent);
 	};
 };
