@@ -1,0 +1,7 @@
+Debug/
+.vs/
+*.opensdf
+*.sln
+*.filters
+*.vcxproj
+main.cpp
