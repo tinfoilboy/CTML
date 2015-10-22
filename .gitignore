@@ -6,3 +6,4 @@ Debug/
 *.vcxproj
 *.sdf
 main.cpp
+dirent.h
