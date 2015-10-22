@@ -103,6 +103,8 @@ The `CTML::Node::ToggleClass(std::string)` method either adds or removes a class
 
 The `CTML::Node::AppendChild(CTML::Node)` method adds a node to this node as a child.
 
+The `CTML::Node::SetUseBr(bool)` method forces use of the `<br>` tag instead of `\n` in this element's content.
+
 Below is an example of a document with a div in the body, with an a tag as the child.
 
 ```cpp
