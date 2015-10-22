@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 
 namespace CTML {
@@ -29,5 +30,7 @@ namespace CTML {
 		std::string ToString(bool readable);
 		// get the current document as a tree represented in a string
 		std::string ToTree();
+		// write the current document to a file
+		bool WriteToFile(std::string filePath, bool readable);
 	};
 }

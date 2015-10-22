@@ -47,4 +47,14 @@ namespace CTML {
 		treeStr += m_body.GetTreeString(0);
 		return treeStr;
 	}
+
+	bool Document::WriteToFile(std::string filePath, bool readable) {
+		std::ofstream file = std::ofstream(filePath);
+		if (file.is_open()) {
+			file << this->ToString(readable);
+			file.close();
+			return true;
+		}
+		return false;
+	}
 }

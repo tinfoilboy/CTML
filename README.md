@@ -49,6 +49,36 @@ The result of running this program in the console is below.
 </html>
 ```
 
+There is also the `CTML::Document::WriteToFile(std::string, bool)` method, which opens a stream to `filePath` and outputs the document string to the stream. `readable` determines whether or not the file should be written as inline or not.
+
+Below is an example of `CTML::Document::WriteToFile(std::string, bool)`.
+
+```cpp
+#include "CTML.h"
+
+int main()
+{
+    CTML::Document doc = CTML::Document();
+    doc.AddNodeToBody(CTML::Node("a.link").SetContent("Anchor").SetAttribute("href", "http://www.example.com"));
+    return doc.WriteToFile("index.html", true);
+}
+```
+
+Which saves the document to the `index.html` file next to the executable, with the output of this.
+
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <a class="link" href="http://www.example.com">
+            Anchor
+        </a>
+    </body>
+</html>
+```
+
 ###### Nodes
 
 Along with the `CTML::Document` class, CTML provides a `CTML::Node` class. `CTML::Node` is the basis of all element representation in CTML.
