@@ -146,4 +146,4 @@ Tests can be found, as well as added to the `tests.cpp` file, if you'd like to r
 
 # License
 
-This project (CFML) is licensed under the MIT License, the terms can be seen [here](https://github.com/tinfoilboy/CFML).
+This project (CTML) is licensed under the MIT License, the terms can be seen [here](https://github.com/tinfoilboy/CTML/blob/master/LICENSE).
