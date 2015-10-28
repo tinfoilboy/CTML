@@ -25,7 +25,7 @@ This creates a document with a head, and body tag. As well as a DOCTYPE tag.
 The Document includes two methods for getting to a string. `CTML::Document::ToString(bool)` and `CTML::Document::ToTree()``.
 
 There is only one argument in `CTML::Document::ToString(CTML::Readability)`, the `readability` parameter is an enum defined in `Node.h`, which currently can be equal to, `SINGLE_LINE`, `MULTILINE`, or `MULTILINE_BR`. This only determines how the string should be formatted.
-s
+
 `CTML::Document::ToTree()` returns the document as a tree view that reflects the nesting of the actual document.
 
 A simple example that returns the document as a string to the console is below.
