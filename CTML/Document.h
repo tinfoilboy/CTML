@@ -42,18 +42,19 @@ namespace CTML {
 		}
 
 		// gets the current document as a string
-		std::string ToString(bool readable) {
+		std::string ToString(const Readability& readability) {
+			bool isMultiline = (readability == MULTILINE || readability == MULTILINE_BR);
 			std::string doc = "";
 			// add the doctype to the string
-			doc += m_doctype.ToString(readable, 0);
+			doc += m_doctype.ToString(readability, 0);
 			// every document needs an html tag, add it
 			doc += "<html>";
 			// if we want readability, append a newline to the html beginning tag
-			doc += ((readable) ? "\n" : "");
+			doc += ((isMultiline) ? "\n" : "");
 			// append the head tag and its children
-			doc += m_head.ToString(readable, 1);
+			doc += m_head.ToString(readability, 1);
 			// append the body tag and its children
-			doc += m_body.ToString(readable, 1);
+			doc += m_body.ToString(readability, 1);
 			// close the html tag
 			doc += "</html>";
 			return doc;
@@ -69,10 +70,10 @@ namespace CTML {
 		}
 
 		// write the current document to a file
-		bool WriteToFile(std::string filePath, bool readable) {
+		bool WriteToFile(std::string filePath, const Readability& readability) {
 			std::ofstream file = std::ofstream(filePath);
 			if (file.is_open()) {
-				file << this->ToString(readable);
+				file << this->ToString(readability);
 				file.close();
 				return true;
 			}

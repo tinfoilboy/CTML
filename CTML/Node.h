@@ -13,6 +13,10 @@
 namespace CTML {
 	enum NodeType { DOCUMENT_TYPE, ELEMENT };
 
+	// a few enums for readability of the HTML
+	// SINGLE_LINE returns the string as one line, useful for 
+	enum Readability { SINGLE_LINE, MULTILINE, MULTILINE_BR };
+
 	class Node {
 		// the type of node this
 		NodeType m_type;
@@ -26,37 +30,40 @@ namespace CTML {
 		std::vector<Node> m_children;
 		// a map of attributes, name is the attribute name and the value is the attribute value
 		std::map<std::string, std::string> m_attributes;
-		// should new lines in m_content be represented with a br tag
-		bool m_newLineBR = false;
 	public:
 		Node() {}
 		
 		// create a node with the name specified
-		Node(std::string name) {
+		Node(const std::string& name) {
 			this->m_type = ELEMENT;
 			this->SetName(name);
 		}
 
-		Node(std::string name, std::string m_content) {
+		Node(const std::string& name, const std::string& m_content) {
 			this->m_type = ELEMENT;
 			this->SetName(name);
 			this->m_content = m_content;
 		}
 
-		std::string ToString(bool readable, int indentLevel) {
+		std::string ToString(Readability readability, int indentLevel) {
 			std::string elem = "";
 			// the four space indent.
 			std::string indent = "";
 			std::string indentContent = "";
+			// if the readabilty points is either multiline types, this would be true
+			bool isMultiline = (readability == MULTILINE || readability == MULTILINE_BR);
 			// increment the indent string by four spaces based on the indentLevel
-			for (int i = 0; i < indentLevel; i++) {
-				indent += "    ";
+			// but only if the readabilty is MULTILINE OR MULTILINE_BR
+			if (isMultiline) {
+				for (int i = 0; i < indentLevel; i++) {
+					indent += "    ";
+				}
+				// set the m_content indent level to the indent level plus four more spaces
+				indentContent = indent + "    ";
 			}
-			// set the m_content indent level to the indent level plus four more spaces
-			indentContent = indent + "    ";
 			if (this->m_type == ELEMENT) {
 				// construct the first part of the element string, the tag beginning
-				elem = ((readable) ? indent : "") + "<" + m_name + "";
+				elem = ((isMultiline) ? indent : "") + "<" + m_name + "";
 				// add the class list if it isn't empty
 				if (!m_classes.empty()) {
 					std::string classTag = "class=\"";
@@ -68,28 +75,25 @@ namespace CTML {
 				}
 				// close the beginning tag
 				elem += ">";
-				// if readablity is wanted, add a newline
-				if (readable)
+				// if multiline is specified, add a newline
+				if (isMultiline)
 					elem += "\n";
 				// if we have m_content to append
 				if (!m_content.empty()) {
-					// append the m_content to the node, if readability is wanted, add four spaces to the m_content and add a new line
-					if (!readable)
-						elem += m_content;
-					else
-						elem += this->_GetFormattedContent(indentContent);
+					// format the elements content based on the readability, as well as the indent level for content
+					elem += this->_GetFormattedContent(readability, indentContent);
 				}
 				// get every child node from the m_children list
 				for (unsigned int i = 0; i < m_children.size(); i++) {
 					Node childNode = m_children[i];
 					// append the child node to the elem string.
-					elem += childNode.ToString(readable, indentLevel + 1);
+					elem += childNode.ToString(readability, indentLevel + 1);
 				}
-				elem += ((readable) ? indent : "") + "</" + m_name + ">" + ((readable) ? "\n" : "");
+				elem += ((isMultiline) ? indent : "") + "</" + m_name + ">" + ((isMultiline) ? "\n" : "");
 			}
 			else if (this->m_type == DOCUMENT_TYPE) {
 				// just construct the docm_type from the m_content given, if readability is wanted, add a newline
-				elem += "<!DOCTYPE " + m_content + ">" + ((readable) ? "\n" : "");
+				elem += "<!DOCTYPE " + m_content + ">" + ((isMultiline) ? "\n" : "");
 			}
 			return elem;
 		}
@@ -118,7 +122,7 @@ namespace CTML {
 			return tree;
 		}
 
-		Node& SetName(std::string name) {
+		Node& SetName(const std::string& name) {
 			// the index of a period
 			int periodIndex = name.find('.');
 			// if there are classes in the name
@@ -138,7 +142,12 @@ namespace CTML {
 			return *this;
 		}
 		Node& SetAttribute(std::string name, std::string value) {
-			m_attributes[name] = value;
+			// setting the "class" attribute would make there be two class attributes on the element
+			// so therefore, if the name of this is class, we just override "m_classes"
+			if (name != "class")
+				m_attributes[name] = value;
+			else
+				m_classes = value;
 			return *this;
 		}
 
@@ -147,12 +156,12 @@ namespace CTML {
 			return *this;
 		}
 
-		Node& SetContent(std::string text) {
+		Node& SetContent(const std::string& text) {
 			this->m_content = text;
 			return *this;
 		}
 
-		Node& ToggleClass(std::string className) {
+		Node& ToggleClass(const std::string& className) {
 			int findIndex = m_classes.find(className);
 			if (findIndex == std::string::npos) {
 				// append the class
@@ -170,26 +179,50 @@ namespace CTML {
 			return *this;
 		}
 
-		Node& SetUseBr(bool useBr) {
-			this->m_newLineBR = useBr;
-			return *this;
-		}
-
 		~Node() {
 			m_attributes.clear();
 			m_children.clear();
 		}
 	private:
-		std::string _GetFormattedContent(std::string indent) {
-			std::string newline = ((this->m_newLineBR) ? "\n" + indent + "<br>\n" : "\n");
+		std::string _GetFormattedContent(Readability readability, const std::string& indent) {
 			std::string result;
 			std::istringstream iss(m_content);
-			// iterate through each line in this node
-			for (std::string line; std::getline(iss, line);)
-			{
-				result += indent + line + newline;
+			// if we are using either varient of multiple lines, run this.
+			if (readability == MULTILINE || readability == MULTILINE_BR) {
+				std::string newline = ((readability == MULTILINE_BR) ? "\n" + indent + "<br>\n" : "\n");
+				// iterate through each line in this node
+				for (std::string line; std::getline(iss, line);)
+				{
+					result += indent + line + newline;
+				}
+				return result;
 			}
+			else {
+				// iterate through each line in this node
+				for (std::string line; std::getline(iss, line);)
+				{
+					result = line;
+				}
+			}
+			// replaces all instances of "<" in the content with "&lt;", to escape rogue HTML
+			result = ReplaceAllOccurrences(result, "<", "&lt;");
+			// replaces all instances of ">" in the content with "&gt;" to escape rogue HTML
+			result = ReplaceAllOccurrences(result, ">", "&gt;");
+			// return the result of the content
 			return result;
+		}
+		std::string ReplaceAllOccurrences(std::string replacer, const std::string& replacable, const std::string& replace) {
+			// the start of the current replacable string
+			int start = 0;
+			// try and find each occurrence of replaceable until it can't be found
+			while ((start = replacer.find(replacable, start)) != std::string::npos) {
+				// replace the actual string
+				replacer.replace(start, replacable.length(), replace);
+				// add to the start so that find can be run again
+				start += replace.length();
+			}
+			// return the replaced string
+			return replacer;
 		}
 	};
 };
