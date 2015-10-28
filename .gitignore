@@ -1,9 +1,12 @@
 Debug/
+Release/
 .vs/
 *.opensdf
 *.sln
 *.filters
 *.vcxproj
+*.user
+*.gitattributes
 *.sdf
 main.cpp
 dirent.h
