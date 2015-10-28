@@ -2,6 +2,10 @@
 
 CTML is a C++ HTML document constructor, that was designed to be simple to use and implement. Has no dependencies on any other projects, only the C++ standard library.
 
+# Including
+
+To use CTML in your project, just point your compiler to the folder containing the `CTML.h`, `Document.h`, and `Node.h` files. Once you are done with that, just do `#include "CTML.h"` on the files where you use CTML, and voila, you're done.
+
 # Usage
 
 ###### Including the Classes 
