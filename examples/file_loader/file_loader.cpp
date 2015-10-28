@@ -1,7 +1,7 @@
 #include "CTML.h"
 #include "dirent.h"
 
-bool add_files_to_doc(std::string folderPath, CTML::Node* containerNode, bool readable) {
+bool add_files_to_doc(std::string folderPath, CTML::Node* containerNode) {
 	DIR *directory = NULL;
 	// open the folder path
 	directory = opendir(folderPath.c_str());
@@ -26,8 +26,7 @@ bool add_files_to_doc(std::string folderPath, CTML::Node* containerNode, bool re
 			while (std::getline(textFile, line))
 			{
 				// append the line to the doc content
-				if (readable) docContent += line + '\n';
-				else docContent += line;
+				docContent += line + '\n';
 			}
 			// hacky way of removing the last new line in the doc content
 			int lastNewLine = docContent.find_last_of('\n');
@@ -36,11 +35,9 @@ bool add_files_to_doc(std::string folderPath, CTML::Node* containerNode, bool re
 			// remove the extention from the file name
 			fileName = fileName.substr(0, fileName.find('.'));
 			// the container for this file
-			CTML::Node fileContainer = CTML::Node("div.post");
-			CTML::Node fileTitle = CTML::Node("h1", fileName);
-			CTML::Node fileContent = CTML::Node("p", docContent);
-			// since we are using a paragraph element, we need to use br tags for newlines, force this onn the element
-			fileContent.SetUseBr(true);
+			CTML::Node fileContainer("div.post");
+			CTML::Node fileTitle("h1", fileName);
+			CTML::Node fileContent("p", docContent);
 			// append the title and content to the file container
 			fileContainer.AppendChild(fileTitle).AppendChild(fileContent);
 			// append the file container to the root container
@@ -58,22 +55,22 @@ bool add_files_to_doc(std::string folderPath, CTML::Node* containerNode, bool re
 
 int main()
 {
-	CTML::Document doc = CTML::Document();
+	CTML::Document doc;
 	doc.AddNodeToHead(CTML::Node("title", "CTML Test"));
 	// force utf-8 encoding
 	doc.AddNodeToHead(CTML::Node("meta").SetAttribute("charset", "UTF-8"));
-	CTML::Node containerNode = CTML::Node("div.container");
+	CTML::Node containerNode("div.container");
 	std::string dir;
 	// input the directory to look for files
 	std::cout << "Input the directory name with the files: ";
 	std::cin >> dir;
-	bool result = add_files_to_doc(dir, &containerNode, true);
+	bool result = add_files_to_doc(dir, &containerNode);
 	// add the files container to the body
 	doc.AddNodeToBody(containerNode);
 	bool fileWriteResult = false;
 	// if finding files was successful, try to write to a file
 	if (result)
-		fileWriteResult = doc.WriteToFile("index.html", true);
+		fileWriteResult = doc.WriteToFile("index.html", CTML::MULTILINE_BR);
 	// if we wrote to the file successfully
 	if (fileWriteResult)
 		std::cout << "All files in \"" + dir + "\" written to index.html successfully!\n";

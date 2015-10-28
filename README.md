@@ -36,7 +36,7 @@ A simple example that returns the document as a string to the console is below.
 
 int main ()
 {
-    CTML::Document document = CTML::Document();
+    CTML::Document document;
     std::cout << document.ToString(CTML::MULTILINE);
 }
 ```
@@ -62,7 +62,7 @@ Below is an example of `CTML::Document::WriteToFile(std::string, CTML::Readabili
 
 int main()
 {
-    CTML::Document doc = CTML::Document();
+    CTML::Document doc;
     doc.AddNodeToBody(CTML::Node("a.link").SetContent("Anchor").SetAttribute("href", "http://www.example.com"));
     return doc.WriteToFile("index.html", CTML::MULTILINE);
 }
@@ -114,7 +114,7 @@ Below is an example of a document with a div in the body, with an a tag as the c
 
 int main()
 {
-    CTML::Document doc = CTML::Document();
+    CTML::Document doc;
     doc.AddNodeToBody(CTML::Node("a.link").SetContent("Anchor").SetAttribute("href", "http://www.example.com"));
     std::cout << doc.ToString(CTML::MULTILINE);
     return 0;

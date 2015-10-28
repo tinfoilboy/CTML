@@ -75,8 +75,8 @@ namespace CTML {
 				}
 				// close the beginning tag
 				elem += ">";
-				// if multiline is specified, add a newline
-				if (isMultiline)
+				// if multiline is specified and the content/children aren't empty, add a newline
+				if (isMultiline && (!m_content.empty() || !m_children.empty()))
 					elem += "\n";
 				// if we have m_content to append
 				if (!m_content.empty()) {
@@ -87,9 +87,11 @@ namespace CTML {
 				for (unsigned int i = 0; i < m_children.size(); i++) {
 					Node childNode = m_children[i];
 					// append the child node to the elem string.
-					elem += childNode.ToString(readability, indentLevel + 1);
+					// if this is not the last child node append a newline if multiline
+					elem += childNode.ToString(readability, indentLevel + 1) + ((i != m_children.size() - 1 && isMultiline) ? "\n" : "");
 				}
-				elem += ((isMultiline) ? indent : "") + "</" + m_name + ">" + ((isMultiline) ? "\n" : "");
+				// if multiline is specified and the content/children aren't empty, add a newline and indent
+				elem += ((isMultiline && (!m_content.empty() || !m_children.empty())) ? "\n" + indent : "") + "</" + m_name + ">";
 			}
 			else if (this->m_type == DOCUMENT_TYPE) {
 				// just construct the docm_type from the m_content given, if readability is wanted, add a newline
@@ -189,11 +191,15 @@ namespace CTML {
 			std::istringstream iss(m_content);
 			// if we are using either varient of multiple lines, run this.
 			if (readability == MULTILINE || readability == MULTILINE_BR) {
+				// the newline string, differs between MULTILINE and MULTILINE_BR
 				std::string newline = ((readability == MULTILINE_BR) ? "\n" + indent + "<br>\n" : "\n");
+				// the current line iterated
+				int curLine = 0;
 				// iterate through each line in this node
 				for (std::string line; std::getline(iss, line);)
 				{
-					result += indent + line + newline;
+					result += ((curLine > 0) ? newline : "") + indent + line;
+					curLine++;
 				}
 				return result;
 			}
@@ -201,17 +207,17 @@ namespace CTML {
 				// iterate through each line in this node
 				for (std::string line; std::getline(iss, line);)
 				{
-					result = line;
+					result += line;
 				}
 			}
 			// replaces all instances of "<" in the content with "&lt;", to escape rogue HTML
-			result = ReplaceAllOccurrences(result, "<", "&lt;");
+			result = _ReplaceAllOccurrences(result, "<", "&lt;");
 			// replaces all instances of ">" in the content with "&gt;" to escape rogue HTML
-			result = ReplaceAllOccurrences(result, ">", "&gt;");
+			result = _ReplaceAllOccurrences(result, ">", "&gt;");
 			// return the result of the content
 			return result;
 		}
-		std::string ReplaceAllOccurrences(std::string replacer, const std::string& replacable, const std::string& replace) {
+		std::string _ReplaceAllOccurrences(std::string replacer, const std::string& replacable, const std::string& replace) {
 			// the start of the current replacable string
 			int start = 0;
 			// try and find each occurrence of replaceable until it can't be found
@@ -223,6 +229,21 @@ namespace CTML {
 			}
 			// return the replaced string
 			return replacer;
+		}
+		int _CountOccurrences(std::string finder, const std::string& findable) {
+			// the occurrences of the string
+			int occurrences = 0;
+			// the start of the current replacable string
+			int start = 0;
+			// try and find each occurrence of replaceable until it can't be found
+			while ((start = finder.find(findable, start)) != std::string::npos) {
+				// replace the actual string
+				occurrences++;
+				// add to the start so that find can be run again
+				start += findable.length();
+			}
+			// return the replaced string
+			return occurrences;
 		}
 	};
 };

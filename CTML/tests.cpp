@@ -11,7 +11,7 @@ bool assert_strings_equal(const std::string& left, const std::string& right) {
 void run_escape_test() {
 	// what the node's to string should be equal to
 	std::string htmlString = "<a class=\"button\">&lt;script&gt;alert(\"ha ha hacked!\")&lt;/script&gt;</a>";
-	CTML::Node node = CTML::Node("a.button", "<script>alert(\"ha ha hacked!\")</script>");
+	CTML::Node node("a.button", "<script>alert(\"ha ha hacked!\")</script>");
 	// the node's string output
 	std::string nodeString = node.ToString(CTML::SINGLE_LINE, 0);
 	bool test = assert_strings_equal(htmlString, nodeString);
@@ -25,7 +25,7 @@ void run_escape_test() {
 void run_document_test() {
 	// what the document's to string should be equal to
 	std::string htmlString = "<!DOCTYPE html><html><head></head><body></body></html>";
-	CTML::Document doc = CTML::Document();
+	CTML::Document doc;
 	// the string output of the document
 	std::string docString = doc.ToString(CTML::SINGLE_LINE);
 	bool test = assert_strings_equal(htmlString, docString);

@@ -52,9 +52,9 @@ namespace CTML {
 			// if we want readability, append a newline to the html beginning tag
 			doc += ((isMultiline) ? "\n" : "");
 			// append the head tag and its children
-			doc += m_head.ToString(readability, 1);
+			doc += m_head.ToString(readability, 1) + ((isMultiline) ? "\n" : "");
 			// append the body tag and its children
-			doc += m_body.ToString(readability, 1);
+			doc += m_body.ToString(readability, 1) + ((isMultiline) ? "\n" : "");
 			// close the html tag
 			doc += "</html>";
 			return doc;
