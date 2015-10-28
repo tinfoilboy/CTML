@@ -14,7 +14,7 @@ To get all of the classes provided in CTML just use, `#include "CTML.h"`.
 
 ###### Namespacing
 
-Everything in CTML is namespaced with `CTML`. So for example, the `Node` class would be under `CTML::Node`
+Everything in CTML is namespaced with `CTML`. So for example, the `Node` class would be under `CTML::Node`.
 
 ###### Documents
 
@@ -24,8 +24,8 @@ This creates a document with a head, and body tag. As well as a DOCTYPE tag.
 
 The Document includes two methods for getting to a string. `CTML::Document::ToString(bool)` and `CTML::Document::ToTree()``.
 
-There is only one argument in `CTML::Document::ToString(bool)`, which is `readable` which determines if the document should be returned as all one line. Or as an indented, and multiline string.
-
+There is only one argument in `CTML::Document::ToString(CTML::Readability)`, the `readability` parameter is an enum defined in `Node.h`, which currently can be equal to, `SINGLE_LINE`, `MULTILINE`, or `MULTILINE_BR`. This only determines how the string should be formatted.
+s
 `CTML::Document::ToTree()` returns the document as a tree view that reflects the nesting of the actual document.
 
 A simple example that returns the document as a string to the console is below.
@@ -37,7 +37,7 @@ A simple example that returns the document as a string to the console is below.
 int main ()
 {
     CTML::Document document = CTML::Document();
-    std::cout << document.ToString(true);
+    std::cout << document.ToString(CTML::MULTILINE);
 }
 ```
 
@@ -53,9 +53,9 @@ The result of running this program in the console is below.
 </html>
 ```
 
-There is also the `CTML::Document::WriteToFile(std::string, bool)` method, which opens a stream to `filePath` and outputs the document string to the stream. `readable` determines whether or not the file should be written as inline or not.
+There is also the `CTML::Document::WriteToFile(std::string, CTML::Readability)` method, which opens a stream to `filePath` and outputs the document string to the stream. The second argument, `readability` is an enum defined in `Node.h`, which currently can be equal to, `SINGLE_LINE`, `MULTILINE`, or `MULTILINE_BR`. This only determines how the file should be output.
 
-Below is an example of `CTML::Document::WriteToFile(std::string, bool)`.
+Below is an example of `CTML::Document::WriteToFile(std::string, CTML::Readability)`.
 
 ```cpp
 #include "CTML.h"
@@ -64,7 +64,7 @@ int main()
 {
     CTML::Document doc = CTML::Document();
     doc.AddNodeToBody(CTML::Node("a.link").SetContent("Anchor").SetAttribute("href", "http://www.example.com"));
-    return doc.WriteToFile("index.html", true);
+    return doc.WriteToFile("index.html", CTML::MULTILINE);
 }
 ```
 
@@ -89,7 +89,7 @@ Along with the `CTML::Document` class, CTML provides a `CTML::Node` class. `CTML
 
 `CTML::Node` contains eight methods for manipulation of a current node. Almost all of these methods are chainable.
 
-There are two methods for getting a string from `CTML::Node`. The first of which is `CTML::Node::ToString(bool, int)`, which returns the current node and all of its children as a string representing each element. The parameter, `readable`, determines if the document should be returned as all one line. Or as an indented, and multiline string. The other parameter, `indentLevel` is an integer representing how many indents (four spaces each) should be used if `readable` is true. This is ignored if `readable` is false.
+There are two methods for getting a string from `CTML::Node`. The first of which is `CTML::Node::ToString(bool, int)`, which returns the current node and all of its children as a string representing each element. The parameter, `readability` is an enum defined in `Node.h`, which currently can be equal to, `SINGLE_LINE`, `MULTILINE`, or `MULTILINE_BR`. This only determines how the string should be formatted. The `indentLevel` parameter is used to determine how many four space blocks the children of each element be indented by, this only is used if `readability` is either `MULTILINE` or `MULTILINE_BR`.
 
 The other method is `CTML:::Node:GetTreeString(int)`, which returns the current node and it's children as a tree view. The `indentLevel` parameter is an integer representing how many indents (four spaces each) should be used in representing the nesting of the nodes.
 
@@ -107,8 +107,6 @@ The `CTML::Node::ToggleClass(std::string)` method either adds or removes a class
 
 The `CTML::Node::AppendChild(CTML::Node)` method adds a node to this node as a child.
 
-The `CTML::Node::SetUseBr(bool)` method forces use of the `<br>` tag instead of `\n` in this element's content.
-
 Below is an example of a document with a div in the body, with an a tag as the child.
 
 ```cpp
@@ -118,7 +116,7 @@ int main()
 {
     CTML::Document doc = CTML::Document();
     doc.AddNodeToBody(CTML::Node("a.link").SetContent("Anchor").SetAttribute("href", "http://www.example.com"));
-    std::cout << doc.ToString(true);
+    std::cout << doc.ToString(CTML::MULTILINE);
     return 0;
 }
 ```
@@ -137,6 +135,10 @@ Which returns the following in the console...
     </body>
 </html>
 ```
+
+# Tests
+
+Tests can be found, as well as added to the `tests.cpp` file, if you'd like to run the tests, just compile that file in your compiler, and run the executable that has been created.
 
 # Credits
 
