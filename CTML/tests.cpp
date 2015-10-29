@@ -35,8 +35,22 @@ void run_document_test() {
 		"Expected Output: " << htmlString << std::endl << std::endl;
 }
 
+// this test checks if the classes provided are correctly stored
+void run_class_test() {
+	std::string classString = "test classes are fun";
+	CTML::Node testNode("a.test.classes.are.fun");
+	// get the test node's classlist.
+	std::string classList = testNode.GetAttribute("class");
+	bool test = assert_strings_equal(classString, classList);
+	std::cout << "Class Test " << ((test) ? "passed!" : "failed!") << std::endl <<
+		"Class Output: " << classList << std::endl <<
+		// use a double end line at the end for spacing between tests
+		"Expected Output: " << classString << std::endl << std::endl;
+}
+
 int main() {
 	run_escape_test();
 	run_document_test();
+	run_class_test();
 	return 0;
 }
