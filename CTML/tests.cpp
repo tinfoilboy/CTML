@@ -2,9 +2,7 @@
 
 // tests if two strings are equivelent to each other
 bool assert_strings_equal(const std::string& left, const std::string& right) {
-	if (left == right)
-		return true;
-	return false;
+	return (left == right);
 }
 
 // this test ensures that HTML inside of the content is escaped correctly.

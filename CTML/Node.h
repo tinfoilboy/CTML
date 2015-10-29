@@ -298,21 +298,15 @@ namespace CTML {
 				else {
 					// if the current character is a period, set the current parsing to class
 					// else if the current character is a pound sign, set the current parsing to id
-					if (curChar == '.') {
+					if (curChar == '.' || curChar == '#') {
 						if (currentlyParsing == 1)
 							m_classes += attrString + " ";
 						else
-							m_ids += attrString + " ";
+							// if we hit an id, we just reset the id
+							// this is because HTML only allows for a single id on each element
+							m_ids = attrString;
 						attrString.clear();
-						currentlyParsing = 1;
-					}
-					else if (curChar == '#') {
-						if (currentlyParsing == 1)
-							m_classes += attrString + " ";
-						else
-							m_ids += attrString + " ";
-						attrString.clear();
-						currentlyParsing = 2;
+						currentlyParsing = ((curChar == '.') ? 1 : 2);
 					}
 					else {
 						// add the current character to the class or id string
@@ -322,9 +316,11 @@ namespace CTML {
 				// if we are at the last character, and are still parsing something, add it to the respective attr
 				if (currentlyParsing != 0 && i == classesAndIDs.size() - 1) {
 					if (currentlyParsing == 1)
-						m_classes += attrString + " ";
+						m_classes += attrString;
 					else
-						m_ids += attrString + " ";
+						// if we hit an id, we just reset the id
+						// this is because HTML only allows for a single id on each element
+						m_ids = attrString;
 					attrString.clear();
 				}
 			}
@@ -332,11 +328,6 @@ namespace CTML {
 			if (!m_classes.empty()) {
 				if (isspace(m_classes.at(m_classes.size() - 1)))
 					m_classes = m_classes.substr(0, m_classes.size() - 1);
-			}
-			// if there is an extra space at the end of m_ids, remove it
-			if (!m_ids.empty()) {
-				if (isspace(m_ids.at(m_ids.size() - 1)))
-					m_ids = m_ids.substr(0, m_ids.size() - 1);
 			}
 		}
 	};
