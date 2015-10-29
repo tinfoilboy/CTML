@@ -143,6 +143,15 @@ namespace CTML {
 			}
 			return *this;
 		}
+
+		std::string GetAttribute(const std::string& name) {
+			// the class attribute is traced with m_classes, so we return that instead of m_attributes[name]
+			if (name != "class")
+				return m_attributes[name];
+			else
+				return m_classes;
+		}
+
 		Node& SetAttribute(std::string name, std::string value) {
 			// setting the "class" attribute would make there be two class attributes on the element
 			// so therefore, if the name of this is class, we just override "m_classes"
