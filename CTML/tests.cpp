@@ -38,7 +38,7 @@ void run_document_test() {
 // this test checks if the classes provided are correctly stored
 void run_class_test() {
 	std::string classString = "test classes are fun";
-	CTML::Node testNode("a.test.classes.are.fun");
+	CTML::Node testNode("a#test.test.classes.are.fun");
 	// get the test node's classlist.
 	std::string classList = testNode.GetAttribute("class");
 	bool test = assert_strings_equal(classString, classList);

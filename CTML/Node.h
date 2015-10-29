@@ -24,6 +24,8 @@ namespace CTML {
 		std::string m_name;
 		// the classes for this node
 		std::string m_classes;
+		// the ids for this node
+		std::string m_ids;
 		// the content of this node
 		std::string m_content;
 		// the child elements of this node
@@ -32,7 +34,7 @@ namespace CTML {
 		std::map<std::string, std::string> m_attributes;
 	public:
 		Node() {}
-		
+
 		// create a node with the name specified
 		Node(const std::string& name) {
 			this->m_type = ELEMENT;
@@ -68,6 +70,11 @@ namespace CTML {
 				if (!m_classes.empty()) {
 					std::string classTag = "class=\"";
 					elem += " " + classTag + m_classes + "\"";
+				}
+				// add the id list if it isn't empty
+				if (!m_ids.empty()) {
+					std::string idTag = "id=\"";
+					elem += " " + idTag + m_ids + "\"";
 				}
 				// make an iterator for each attribute
 				for (auto attr : m_attributes) {
@@ -127,16 +134,22 @@ namespace CTML {
 		Node& SetName(const std::string& name) {
 			// the index of a period
 			int periodIndex = name.find('.');
+			// the index of a pound sign
+			int poundIndex = name.find('#');
 			// if there are classes in the name
-			if (periodIndex != std::string::npos) {
+			if (periodIndex != std::string::npos || poundIndex != std::string::npos) {
+				// if the pound index comes before the period index
+				bool poundBefore = (poundIndex != std::string::npos && poundIndex < periodIndex);
+				// get the first index for parsing
+				// if pound comes first, or there are no periods, use the first pound index first
+				// else use the first period index
+				int ind = ((poundBefore || (periodIndex == std::string::npos && poundIndex != std::string::npos)) ? poundIndex : periodIndex);
 				// get the element name
-				std::string elemName = name.substr(0, periodIndex);
-				// get the classes for this element
-				std::string classes = name.substr(periodIndex + 1);
-				// replace each class period with a space
-				std::replace(classes.begin(), classes.end(), '.', ' ');
+				std::string elemName = name.substr(0, ind);
+				// parse the current ids and classes
+				_ParseClassesAndIDS(name.substr(ind));
 				this->m_name = elemName;
-				this->m_classes = classes;
+				//this->m_classes = classes;
 			}
 			else {
 				this->m_name = name;
@@ -145,20 +158,26 @@ namespace CTML {
 		}
 
 		std::string GetAttribute(const std::string& name) {
-			// the class attribute is traced with m_classes, so we return that instead of m_attributes[name]
-			if (name != "class")
+			// the class attribute is tracked with m_classes, so we return that instead of m_attributes[name]
+			if (name != "class" && name != "id")
 				return m_attributes[name];
-			else
+			else if (name == "class")
 				return m_classes;
+			else if (name == "id")
+				return m_ids;
+			else
+				return "NOT_FOUND";
 		}
 
 		Node& SetAttribute(std::string name, std::string value) {
 			// setting the "class" attribute would make there be two class attributes on the element
 			// so therefore, if the name of this is class, we just override "m_classes"
-			if (name != "class")
+			if (name != "class" && name != "id")
 				m_attributes[name] = value;
-			else
+			else if (name == "class")
 				m_classes = value;
+			else if (name == "id")
+				m_ids = value;
 			return *this;
 		}
 
@@ -253,6 +272,72 @@ namespace CTML {
 			}
 			// return the replaced string
 			return occurrences;
+		}
+		void _ParseClassesAndIDS(std::string classesAndIDs) {
+			// what is currently being parsed
+			// zero for nothing
+			// one for class
+			// two for id
+			int currentlyParsing = 0;
+			// the string for the class or ID
+			std::string attrString;
+			// iterate through each character in the string
+			for (unsigned int i = 0; i < classesAndIDs.size(); i++) {
+				// the current character being iterated
+				char curChar = classesAndIDs[i];
+				if (currentlyParsing == 0) {
+					// if the current character is a period, set the current parsing to class
+					// else if the current character is a pound sign, set the current parsing to id
+					if (curChar == '.') {
+						currentlyParsing = 1;
+					}
+					else if (curChar == '#') {
+						currentlyParsing = 2;
+					}
+				}
+				else {
+					// if the current character is a period, set the current parsing to class
+					// else if the current character is a pound sign, set the current parsing to id
+					if (curChar == '.') {
+						if (currentlyParsing == 1)
+							m_classes += attrString + " ";
+						else
+							m_ids += attrString + " ";
+						attrString.clear();
+						currentlyParsing = 1;
+					}
+					else if (curChar == '#') {
+						if (currentlyParsing == 1)
+							m_classes += attrString + " ";
+						else
+							m_ids += attrString + " ";
+						attrString.clear();
+						currentlyParsing = 2;
+					}
+					else {
+						// add the current character to the class or id string
+						attrString += curChar;
+					}
+				}
+				// if we are at the last character, and are still parsing something, add it to the respective attr
+				if (currentlyParsing != 0 && i == classesAndIDs.size() - 1) {
+					if (currentlyParsing == 1)
+						m_classes += attrString + " ";
+					else
+						m_ids += attrString + " ";
+					attrString.clear();
+				}
+			}
+			// if there is an extra space at the end of m_classes, remove it
+			if (!m_classes.empty()) {
+				if (isspace(m_classes.at(m_classes.size() - 1)))
+					m_classes = m_classes.substr(0, m_classes.size() - 1);
+			}
+			// if there is an extra space at the end of m_ids, remove it
+			if (!m_ids.empty()) {
+				if (isspace(m_ids.at(m_ids.size() - 1)))
+					m_ids = m_ids.substr(0, m_ids.size() - 1);
+			}
 		}
 	};
 };
