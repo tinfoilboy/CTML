@@ -14,7 +14,9 @@ namespace CTML {
 	enum NodeType { DOCUMENT_TYPE, ELEMENT };
 
 	// a few enums for readability of the HTML
-	// SINGLE_LINE returns the string as one line, useful for 
+	// SINGLE_LINE returns the string as one line
+	// MULTILINE returns the string as multiple lines, which is good for file outputs or readability.
+	// MULTILINE_BR is essentially the same as MULTILINE, but the difference is that newlines in the content of the node are formatted to use <br> tags.
 	enum Readability { SINGLE_LINE, MULTILINE, MULTILINE_BR };
 
 	class Node {
@@ -25,7 +27,7 @@ namespace CTML {
 		// the classes for this node
 		std::string m_classes;
 		// the ids for this node
-		std::string m_ids;
+		std::string m_id;
 		// the content of this node
 		std::string m_content;
 		// the child elements of this node
@@ -72,9 +74,9 @@ namespace CTML {
 					elem += " " + classTag + m_classes + "\"";
 				}
 				// add the id list if it isn't empty
-				if (!m_ids.empty()) {
+				if (!m_id.empty()) {
 					std::string idTag = "id=\"";
-					elem += " " + idTag + m_ids + "\"";
+					elem += " " + idTag + m_id + "\"";
 				}
 				// make an iterator for each attribute
 				for (auto attr : m_attributes) {
@@ -164,9 +166,9 @@ namespace CTML {
 			else if (name == "class")
 				return m_classes;
 			else if (name == "id")
-				return m_ids;
+				return m_id;
 			else
-				return "NOT_FOUND";
+				return "";
 		}
 
 		Node& SetAttribute(std::string name, std::string value) {
@@ -177,7 +179,7 @@ namespace CTML {
 			else if (name == "class")
 				m_classes = value;
 			else if (name == "id")
-				m_ids = value;
+				m_id = value;
 			return *this;
 		}
 
@@ -229,7 +231,6 @@ namespace CTML {
 					result += ((curLine > 0) ? newline : "") + indent + line;
 					curLine++;
 				}
-				return result;
 			}
 			else {
 				// iterate through each line in this node
@@ -304,7 +305,7 @@ namespace CTML {
 						else
 							// if we hit an id, we just reset the id
 							// this is because HTML only allows for a single id on each element
-							m_ids = attrString;
+							m_id = attrString;
 						attrString.clear();
 						currentlyParsing = ((curChar == '.') ? 1 : 2);
 					}
@@ -320,7 +321,7 @@ namespace CTML {
 					else
 						// if we hit an id, we just reset the id
 						// this is because HTML only allows for a single id on each element
-						m_ids = attrString;
+						m_id = attrString;
 					attrString.clear();
 				}
 			}

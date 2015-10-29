@@ -22,9 +22,10 @@ void run_escape_test() {
 // this test ensures that the HTML document created is equal to a correct HTML5 document
 void run_document_test() {
 	// what the document's to string should be equal to
-	std::string htmlString = "<!DOCTYPE html><html><head></head><body></body></html>";
+	std::string htmlString = "<!DOCTYPE html><html><head></head><body><h1>&lt;test!&gt;</h1></body></html>";
 	CTML::Document doc;
 	// the string output of the document
+	doc.AddNodeToBody(CTML::Node("h1", "<test!>"));
 	std::string docString = doc.ToString(CTML::SINGLE_LINE);
 	bool test = assert_strings_equal(htmlString, docString);
 	std::cout << "Document Test " << ((test) ? "passed!" : "failed!") << std::endl <<
@@ -37,6 +38,7 @@ void run_document_test() {
 void run_class_test() {
 	std::string classString = "test classes are fun";
 	CTML::Node testNode("a#test.test.classes.are.fun");
+	std::cout << testNode.GetAttribute("hehhehtest") << std::endl;
 	// get the test node's classlist.
 	std::string classList = testNode.GetAttribute("class");
 	bool test = assert_strings_equal(classString, classList);
