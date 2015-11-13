@@ -49,7 +49,7 @@ namespace CTML {
 			this->m_content = m_content;
 		}
 
-		std::string ToString(Readability readability, int indentLevel) {
+		const std::string ToString(Readability readability, int indentLevel) {
 			std::string elem = "";
 			// the four space indent.
 			std::string indent = "";
@@ -109,7 +109,7 @@ namespace CTML {
 			return elem;
 		}
 
-		std::string GetTreeString(int indentLevel) {
+		const std::string GetTreeString(int indentLevel) {
 			// the tree string
 			std::string tree = "";
 			// indent level
@@ -159,7 +159,7 @@ namespace CTML {
 			return *this;
 		}
 
-		std::string GetAttribute(const std::string& name) {
+		const std::string GetAttribute(const std::string& name) {
 			// the class attribute is tracked with m_classes, so we return that instead of m_attributes[name]
 			if (name != "class" && name != "id")
 				return m_attributes[name];
@@ -216,7 +216,7 @@ namespace CTML {
 			m_children.clear();
 		}
 	private:
-		std::string _GetFormattedContent(Readability readability, const std::string& indent) {
+		const std::string _GetFormattedContent(Readability readability, const std::string& indent) {
 			std::string result;
 			std::istringstream iss(m_content);
 			// if we are using either varient of multiple lines, run this.
@@ -246,7 +246,7 @@ namespace CTML {
 			// return the result of the content
 			return result;
 		}
-		std::string _ReplaceAllOccurrences(std::string replacer, const std::string& replacable, const std::string& replace) {
+		const std::string _ReplaceAllOccurrences(std::string replacer, const std::string& replacable, const std::string& replace) {
 			// the start of the current replacable string
 			int start = 0;
 			// try and find each occurrence of replaceable until it can't be found
@@ -259,7 +259,7 @@ namespace CTML {
 			// return the replaced string
 			return replacer;
 		}
-		int _CountOccurrences(std::string finder, const std::string& findable) {
+		const int _CountOccurrences(std::string finder, const std::string& findable) {
 			// the occurrences of the string
 			int occurrences = 0;
 			// the start of the current replacable string

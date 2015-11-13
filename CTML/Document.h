@@ -42,7 +42,7 @@ namespace CTML {
 		}
 
 		// gets the current document as a string
-		std::string ToString(const Readability& readability) {
+		const std::string ToString(const Readability& readability) {
 			bool isMultiline = (readability == MULTILINE || readability == MULTILINE_BR);
 			std::string doc = "";
 			// add the doctype to the string
@@ -61,7 +61,7 @@ namespace CTML {
 		}
 
 		// get the current document as a tree represented in a string
-		std::string ToTree() {
+		const std::string ToTree() {
 			std::string treeStr = "";
 			treeStr += "html\n";
 			treeStr += m_head.GetTreeString(0);
