@@ -113,11 +113,8 @@ namespace CTML {
 			// the tree string
 			std::string tree = "";
 			// indent level
-			std::string indent = "";
-			// get the current indent string
-			for (int i = 0; i < indentLevel; i++) {
-				indent += "   ";
-			}
+			std::string indent(4 * indentLevel, ' ');
+			
 			// turn the class list into actual classes for the elements
 			std::string classList = m_classes;
 			std::replace(classList.begin(), classList.end(), ' ', '.');
