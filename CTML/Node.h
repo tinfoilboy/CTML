@@ -124,8 +124,8 @@ namespace CTML {
 			// add the current element to the tree
 			tree += indent + " |_ " + this->m_name + classList + '\n';
 			// for each child
-			for (unsigned int i = 0; i < m_children.size(); i++) {
-				tree += m_children[i].GetTreeString(indentLevel + 1) + '\n';
+			for (const auto& child : m_children) {
+				tree += child.GetTreeString(indentLevel + 1) + '\n';
 			}
 			return tree;
 		}
