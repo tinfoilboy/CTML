@@ -79,7 +79,7 @@ namespace CTML {
 					elem += " " + idTag + m_id + "\"";
 				}
 				// make an iterator for each attribute
-				for (auto attr : m_attributes) {
+				for (const auto& attr : m_attributes) {
 					elem += " " + attr.first + "=\"" + attr.second + "\"";
 				}
 				// close the beginning tag
