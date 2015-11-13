@@ -49,7 +49,7 @@ namespace CTML {
 			this->m_content = m_content;
 		}
 
-		const std::string ToString(Readability readability, int indentLevel) {
+		std::string ToString(Readability readability, int indentLevel) const {
 			std::string elem = "";
 			// the four space indent.
 			std::string indent = "";
@@ -90,7 +90,7 @@ namespace CTML {
 				// if we have m_content to append
 				if (!m_content.empty()) {
 					// format the elements content based on the readability, as well as the indent level for content
-					elem += this->_GetFormattedContent(readability, indentContent);
+					elem += _GetFormattedContent(readability, indentContent);
 				}
 				// get every child node from the m_children list
 				for (unsigned int i = 0; i < m_children.size(); i++) {
@@ -109,7 +109,7 @@ namespace CTML {
 			return elem;
 		}
 
-		const std::string GetTreeString(int indentLevel) {
+		std::string GetTreeString(int indentLevel) const {
 			// the tree string
 			std::string tree = "";
 			// indent level
@@ -156,10 +156,10 @@ namespace CTML {
 			return *this;
 		}
 
-		const std::string GetAttribute(const std::string& name) {
+		std::string GetAttribute(const std::string& name) const {
 			// the class attribute is tracked with m_classes, so we return that instead of m_attributes[name]
-			if (name != "class" && name != "id")
-				return m_attributes[name];
+			if (name != "class" && name != "id" && m_attributes.count(name) > 0)
+				return m_attributes.at(name);
 			else if (name == "class")
 				return m_classes;
 			else if (name == "id")
@@ -213,7 +213,7 @@ namespace CTML {
 			m_children.clear();
 		}
 	private:
-		const std::string _GetFormattedContent(Readability readability, const std::string& indent) {
+		std::string _GetFormattedContent(Readability readability, const std::string& indent) const {
 			std::string result;
 			std::istringstream iss(m_content);
 			// if we are using either varient of multiple lines, run this.
@@ -243,7 +243,7 @@ namespace CTML {
 			// return the result of the content
 			return result;
 		}
-		const std::string _ReplaceAllOccurrences(std::string replacer, const std::string& replacable, const std::string& replace) {
+		std::string _ReplaceAllOccurrences(std::string replacer, const std::string& replacable, const std::string& replace) const {
 			// the start of the current replacable string
 			int start = 0;
 			// try and find each occurrence of replaceable until it can't be found

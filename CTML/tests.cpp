@@ -38,7 +38,6 @@ void run_document_test() {
 void run_class_test() {
 	const std::string classString = "test classes are fun";
 	CTML::Node testNode("a#test.test.classes.are.fun");
-	std::cout << testNode.GetAttribute("hehhehtest") << std::endl;
 	// get the test node's classlist.
 	const std::string classList = testNode.GetAttribute("class");
 	bool test = assert_strings_equal(classString, classList);
@@ -48,9 +47,37 @@ void run_class_test() {
 		"Expected Output: " << classString << std::endl << std::endl;
 }
 
+// this test checks if the attributes provided are correctly stored and gotten
+void run_attribute_test() {
+	const std::string attrOutput = "testAttr1";
+	const std::string attr2Output = "testAttr2";
+	const std::string attr3Output = "";
+	CTML::Node testNode("a");
+	// set two attributes on the node
+	testNode.SetAttribute("attr1", "testAttr1").SetAttribute("attr2", "testAttr2");
+	// get each attribute's output
+	const std::string attrOut = testNode.GetAttribute("attr1");
+	const std::string attr2Out = testNode.GetAttribute("attr2");
+	const std::string attr3Out = testNode.GetAttribute("attr3");
+	// test each string
+	bool test1 = assert_strings_equal(attrOutput, attrOut);
+	bool test2 = assert_strings_equal(attr2Output, attr2Out);
+	bool test3 = assert_strings_equal(attr3Output, attr3Out);
+	std::cout << "Class Test " << ((test1 && test2 && test3) ? "passed!" : "failed!") << std::endl <<
+		"Attr 1 Output: " << attrOut << std::endl <<
+		"Expected Output: " << attrOutput << std::endl <<
+		"Attr 2 Output: " << attr2Out << std::endl <<
+		"Expected Output: " << attr2Output << std::endl <<
+		"Attr 3 Output: " << attr3Out << std::endl <<
+		// use a double end line at the end for spacing between tests
+		"Expected Output: " << attr3Output << std::endl << std::endl;
+
+}
+
 int main() {
 	run_escape_test();
 	run_document_test();
 	run_class_test();
+	run_attribute_test();
 	return 0;
 }
