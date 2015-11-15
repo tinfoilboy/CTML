@@ -132,9 +132,9 @@ namespace CTML {
 
 		Node& SetName(const std::string& name) {
 			// the index of a period
-			int periodIndex = name.find('.');
+			const auto periodIndex = name.find('.');
 			// the index of a pound sign
-			int poundIndex = name.find('#');
+			const auto poundIndex = name.find('#');
 			// if there are classes in the name
 			if (periodIndex != std::string::npos || poundIndex != std::string::npos) {
 				// if the pound index comes before the period index
