@@ -35,7 +35,8 @@ namespace CTML {
 		// a map of attributes, name is the attribute name and the value is the attribute value
 		std::map<std::string, std::string> m_attributes;
 	public:
-		Node() {}
+		// default constructor, does nothing
+		Node() = default;
 
 		// create a node with the name specified
 		Node(const std::string& name) {
@@ -43,13 +44,16 @@ namespace CTML {
 			this->SetName(name);
 		}
 
-		Node(const std::string& name, const std::string& m_content) {
+		// create a node with the name specified, also containing the following content
+		Node(const std::string& name, const std::string& content) {
 			this->m_type = ELEMENT;
 			this->SetName(name);
-			this->m_content = m_content;
+			this->m_content = content;
 		}
 
+		// return this node as an html string
 		std::string ToString(Readability readability, int indentLevel) const {
+			// the element string that will be returned
 			std::string elem = "";
 			// the four space indent.
 			std::string indent = "";
@@ -166,6 +170,11 @@ namespace CTML {
 				return m_id;
 			else
 				return "";
+		}
+
+		std::string GetSelector() const {
+			std::string classesPeriod = _ReplaceAllOccurrences(m_classes, " ", ".");
+			return m_name + classesPeriod + "#" + m_id;
 		}
 
 		Node& SetAttribute(std::string name, std::string value) {
