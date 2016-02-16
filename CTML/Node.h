@@ -64,10 +64,10 @@ namespace CTML {
 			// but only if the readabilty is MULTILINE OR MULTILINE_BR
 			if (isMultiline) {
 				for (int i = 0; i < indentLevel; i++) {
-					indent += "    ";
+					indent = std::string(4 * indentLevel, ' ');
 				}
 				// set the m_content indent level to the indent level plus four more spaces
-				indentContent = indent + "    ";
+				indentContent = std::string(4 * (indentLevel + 1), ' ');
 			}
 			if (this->m_type == ELEMENT) {
 				// construct the first part of the element string, the tag beginning
@@ -97,8 +97,8 @@ namespace CTML {
 					elem += _GetFormattedContent(readability, indentContent);
 				}
 				// get every child node from the m_children list
-				for (unsigned int i = 0; i < m_children.size(); i++) {
-					Node childNode = m_children[i];
+				for (std::size_t i = 0; i < std::size(m_children); ++i) {
+					const auto& childNode = m_children[i];
 					// append the child node to the elem string.
 					// if this is not the last child node append a newline if multiline
 					elem += childNode.ToString(readability, indentLevel + 1) + ((i != m_children.size() - 1 && isMultiline) ? "\n" : "");
@@ -115,10 +115,9 @@ namespace CTML {
 
 		std::string GetTreeString(int indentLevel) const {
 			// the tree string
-			std::string tree = "";
+			std::string tree;
 			// indent level
 			std::string indent(4 * indentLevel, ' ');
-			
 			// turn the class list into actual classes for the elements
 			std::string classList = m_classes;
 			std::replace(classList.begin(), classList.end(), ' ', '.');
@@ -136,9 +135,9 @@ namespace CTML {
 
 		Node& SetName(const std::string& name) {
 			// the index of a period
-			int periodIndex = name.find('.');
+			const auto periodIndex = name.find('.');
 			// the index of a pound sign
-			int poundIndex = name.find('#');
+			const auto poundIndex = name.find('#');
 			// if there are classes in the name
 			if (periodIndex != std::string::npos || poundIndex != std::string::npos) {
 				// if the pound index comes before the period index
@@ -146,13 +145,13 @@ namespace CTML {
 				// get the first index for parsing
 				// if pound comes first, or there are no periods, use the first pound index first
 				// else use the first period index
-				int ind = ((poundBefore || (periodIndex == std::string::npos && poundIndex != std::string::npos)) ? poundIndex : periodIndex);
+				const auto ind = ((poundBefore || (periodIndex == std::string::npos && poundIndex != std::string::npos)) ? poundIndex : periodIndex);
 				// get the element name
 				std::string elemName = name.substr(0, ind);
 				// parse the current ids and classes
 				_ParseClassesAndIDS(name.substr(ind));
+				// set the element name to the built element name
 				this->m_name = elemName;
-				//this->m_classes = classes;
 			}
 			else {
 				this->m_name = name;
@@ -217,10 +216,6 @@ namespace CTML {
 			return *this;
 		}
 
-		~Node() {
-			m_attributes.clear();
-			m_children.clear();
-		}
 	private:
 		std::string _GetFormattedContent(Readability readability, const std::string& indent) const {
 			std::string result;
