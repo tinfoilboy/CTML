@@ -11,7 +11,7 @@ void run_escape_test() {
 	const std::string htmlString = "<a class=\"button\">&lt;script&gt;alert(\"ha ha hacked!\")&lt;/script&gt;</a>";
 	CTML::Node node("a.button", "<script>alert(\"ha ha hacked!\")</script>");
 	// the node's string output
-	const std::string nodeString = node.ToString(CTML::SINGLE_LINE, 0);
+	const std::string nodeString = node.ToString(CTML::Readability::SINGLE_LINE, 0);
 	bool test = assert_strings_equal(htmlString, nodeString);
 	std::cout << "Escape Test " << ((test) ? "passed!" : "failed!") << std::endl <<
 		"HTML Output: " << nodeString << std::endl <<
@@ -26,7 +26,7 @@ void run_document_test() {
 	CTML::Document doc;
 	// the string output of the document
 	doc.AddNodeToBody(CTML::Node("h1", "<test!>"));
-	const std::string docString = doc.ToString(CTML::SINGLE_LINE);
+	const std::string docString = doc.ToString(CTML::Readability::SINGLE_LINE);
 	bool test = assert_strings_equal(htmlString, docString);
 	std::cout << "Document Test " << ((test) ? "passed!" : "failed!") << std::endl <<
 		"HTML Output: " << docString << std::endl <<

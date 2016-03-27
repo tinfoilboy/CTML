@@ -12,6 +12,14 @@
 #include <algorithm>
 
 namespace CTML {
+	enum class DocumentParserState : unsigned char {
+		NOT_PARSING = 0,
+		PARSING_NAME = 1,
+		PARSING_ATTRIBUTE = 2,
+		PARSING_CONTENT = 3,
+		PARSING_END = 4
+	};
+
 	class Document {
 		// the doctype of this document
 		Node m_doctype;
@@ -24,7 +32,7 @@ namespace CTML {
 		Document() {
 			// create and set the doctype to html
 			this->m_doctype = Node("", "html");
-			this->m_doctype.SetType(DOCUMENT_TYPE);
+			this->m_doctype.SetType(NodeType::DOCUMENT_TYPE);
 			// create the head tag
 			this->m_head = Node("head");
 			// create the body tag
@@ -43,7 +51,7 @@ namespace CTML {
 
 		// gets the current document as a string
 		std::string ToString(const Readability& readability) const {
-			bool isMultiline = (readability == MULTILINE || readability == MULTILINE_BR);
+			bool isMultiline = (readability == Readability::MULTILINE || readability == Readability::MULTILINE_BR);
 			std::string doc = "";
 			// add the doctype to the string
 			doc += m_doctype.ToString(readability, 0);
@@ -70,8 +78,8 @@ namespace CTML {
 		}
 
 		// write the current document to a file
-		bool WriteToFile(std::string filePath, const Readability& readability) {
-			std::ofstream file = std::ofstream(filePath);
+		bool WriteToFile(const std::string& filePath, const Readability& readability) const {
+			std::ofstream file(filePath.c_str());
 			if (file.is_open()) {
 				file << this->ToString(readability);
 				file.close();

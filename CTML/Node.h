@@ -11,13 +11,23 @@
 #include <algorithm>
 
 namespace CTML {
-	enum NodeType { DOCUMENT_TYPE, ELEMENT };
+	// the types of nodes used for the html
+	// DOCUMENT_TYPE doesn't use the element name, but uses
+	// the content to determine the document type to use
+	// ELEMENT is just a normal element
+	enum class NodeType { DOCUMENT_TYPE, ELEMENT };
 
 	// a few enums for readability of the HTML
 	// SINGLE_LINE returns the string as one line
 	// MULTILINE returns the string as multiple lines, which is good for file outputs or readability.
 	// MULTILINE_BR is essentially the same as MULTILINE, but the difference is that newlines in the content of the node are formatted to use <br> tags.
-	enum Readability { SINGLE_LINE, MULTILINE, MULTILINE_BR };
+	enum class Readability { SINGLE_LINE, MULTILINE, MULTILINE_BR };
+
+	// the state of the Node name parser
+	// NONE means that nothing is being parsed
+	// CLASS means that a class attribute is being parsed
+	// ID means that an ID is being parsed for the node
+	enum class NodeParser { NONE, CLASS, ID };
 
 	class Node {
 		// the type of node this
@@ -40,13 +50,13 @@ namespace CTML {
 
 		// create a node with the name specified
 		Node(const std::string& name) {
-			this->m_type = ELEMENT;
+			this->m_type = NodeType::ELEMENT;
 			this->SetName(name);
 		}
 
 		// create a node with the name specified, also containing the following content
 		Node(const std::string& name, const std::string& content) {
-			this->m_type = ELEMENT;
+			this->m_type = NodeType::ELEMENT;
 			this->SetName(name);
 			this->m_content = content;
 		}
@@ -59,17 +69,17 @@ namespace CTML {
 			std::string indent = "";
 			std::string indentContent = "";
 			// if the readabilty points is either multiline types, this would be true
-			bool isMultiline = (readability == MULTILINE || readability == MULTILINE_BR);
+			bool isMultiline = (readability == Readability::MULTILINE || readability == Readability::MULTILINE_BR);
 			// increment the indent string by four spaces based on the indentLevel
 			// but only if the readabilty is MULTILINE OR MULTILINE_BR
 			if (isMultiline) {
 				for (int i = 0; i < indentLevel; i++) {
-					indent = std::string(4 * indentLevel, ' ');
+					indent = std::string(INDENT_SPACES * indentLevel, ' ');
 				}
 				// set the m_content indent level to the indent level plus four more spaces
-				indentContent = std::string(4 * (indentLevel + 1), ' ');
+				indentContent = std::string(INDENT_SPACES  * (indentLevel + 1), ' ');
 			}
-			if (this->m_type == ELEMENT) {
+			if (this->m_type == NodeType::ELEMENT) {
 				// construct the first part of the element string, the tag beginning
 				elem = ((isMultiline) ? indent : "") + "<" + m_name + "";
 				// add the class list if it isn't empty
@@ -97,7 +107,7 @@ namespace CTML {
 					elem += _GetFormattedContent(readability, indentContent);
 				}
 				// get every child node from the m_children list
-				for (std::size_t i = 0; i < std::size(m_children); ++i) {
+				for (std::size_t i = 0; i < m_children.size(); ++i) {
 					const auto& childNode = m_children[i];
 					// append the child node to the elem string.
 					// if this is not the last child node append a newline if multiline
@@ -106,7 +116,7 @@ namespace CTML {
 				// if multiline is specified and the content/children aren't empty, add a newline and indent
 				elem += ((isMultiline && (!m_content.empty() || !m_children.empty())) ? "\n" + indent : "") + "</" + m_name + ">";
 			}
-			else if (this->m_type == DOCUMENT_TYPE) {
+			else if (this->m_type == NodeType::DOCUMENT_TYPE) {
 				// just construct the docm_type from the m_content given, if readability is wanted, add a newline
 				elem += "<!DOCTYPE " + m_content + ">" + ((isMultiline) ? "\n" : "");
 			}
@@ -117,7 +127,7 @@ namespace CTML {
 			// the tree string
 			std::string tree;
 			// indent level
-			std::string indent(4 * indentLevel, ' ');
+			std::string indent(INDENT_SPACES * indentLevel, ' ');
 			// turn the class list into actual classes for the elements
 			std::string classList = m_classes;
 			std::replace(classList.begin(), classList.end(), ' ', '.');
@@ -199,7 +209,7 @@ namespace CTML {
 		}
 
 		Node& ToggleClass(const std::string& className) {
-			int findIndex = m_classes.find(className);
+			size_t findIndex = m_classes.find(className);
 			if (findIndex == std::string::npos) {
 				// append the class
 				m_classes += ((!m_classes.empty()) ? " " : "") + className;
@@ -221,9 +231,9 @@ namespace CTML {
 			std::string result;
 			std::istringstream iss(m_content);
 			// if we are using either varient of multiple lines, run this.
-			if (readability == MULTILINE || readability == MULTILINE_BR) {
+			if (readability == Readability::MULTILINE || readability == Readability::MULTILINE_BR) {
 				// the newline string, differs between MULTILINE and MULTILINE_BR
-				std::string newline = ((readability == MULTILINE_BR) ? "\n" + indent + "<br>\n" : "\n");
+				std::string newline = ((readability == Readability::MULTILINE_BR) ? "\n" + indent + "<br>\n" : "\n");
 				// the current line iterated
 				int curLine = 0;
 				// iterate through each line in this node
@@ -249,7 +259,7 @@ namespace CTML {
 		}
 		std::string _ReplaceAllOccurrences(std::string replacer, const std::string& replacable, const std::string& replace) const {
 			// the start of the current replacable string
-			int start = 0;
+			size_t start = 0;
 			// try and find each occurrence of replaceable until it can't be found
 			while ((start = replacer.find(replacable, start)) != std::string::npos) {
 				// replace the actual string
@@ -260,11 +270,11 @@ namespace CTML {
 			// return the replaced string
 			return replacer;
 		}
-		const int _CountOccurrences(std::string finder, const std::string& findable) {
+		int _CountOccurrences(std::string finder, const std::string& findable) const {
 			// the occurrences of the string
 			int occurrences = 0;
 			// the start of the current replacable string
-			int start = 0;
+			size_t start = 0;
 			// try and find each occurrence of replaceable until it can't be found
 			while ((start = finder.find(findable, start)) != std::string::npos) {
 				// replace the actual string
@@ -280,35 +290,35 @@ namespace CTML {
 			// zero for nothing
 			// one for class
 			// two for id
-			int currentlyParsing = 0;
+			NodeParser currentlyParsing = NodeParser::NONE;
 			// the string for the class or ID
 			std::string attrString;
 			// iterate through each character in the string
 			for (unsigned int i = 0; i < classesAndIDs.size(); i++) {
 				// the current character being iterated
 				char curChar = classesAndIDs[i];
-				if (currentlyParsing == 0) {
+				if (currentlyParsing == NodeParser::NONE) {
 					// if the current character is a period, set the current parsing to class
 					// else if the current character is a pound sign, set the current parsing to id
 					if (curChar == '.') {
-						currentlyParsing = 1;
+						currentlyParsing = NodeParser::CLASS;
 					}
 					else if (curChar == '#') {
-						currentlyParsing = 2;
+						currentlyParsing = NodeParser::ID;
 					}
 				}
 				else {
 					// if the current character is a period, set the current parsing to class
 					// else if the current character is a pound sign, set the current parsing to id
 					if (curChar == '.' || curChar == '#') {
-						if (currentlyParsing == 1)
+						if (currentlyParsing == NodeParser::CLASS)
 							m_classes += attrString + " ";
 						else
 							// if we hit an id, we just reset the id
 							// this is because HTML only allows for a single id on each element
 							m_id = attrString;
 						attrString.clear();
-						currentlyParsing = ((curChar == '.') ? 1 : 2);
+						currentlyParsing = ((curChar == '.') ? NodeParser::CLASS : NodeParser::ID);
 					}
 					else {
 						// add the current character to the class or id string
@@ -316,8 +326,8 @@ namespace CTML {
 					}
 				}
 				// if we are at the last character, and are still parsing something, add it to the respective attr
-				if (currentlyParsing != 0 && i == classesAndIDs.size() - 1) {
-					if (currentlyParsing == 1)
+				if (currentlyParsing != NodeParser::NONE && i == classesAndIDs.size() - 1) {
+					if (currentlyParsing == NodeParser::CLASS)
 						m_classes += attrString;
 					else
 						// if we hit an id, we just reset the id
@@ -333,4 +343,4 @@ namespace CTML {
 			}
 		}
 	};
-};
+}
