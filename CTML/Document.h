@@ -12,14 +12,6 @@
 #include <algorithm>
 
 namespace CTML {
-	enum class DocumentParserState : unsigned char {
-		NOT_PARSING = 0,
-		PARSING_NAME = 1,
-		PARSING_ATTRIBUTE = 2,
-		PARSING_CONTENT = 3,
-		PARSING_END = 4
-	};
-
 	class Document {
 		// the doctype of this document
 		Node m_doctype;
