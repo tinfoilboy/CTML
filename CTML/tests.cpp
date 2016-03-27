@@ -1,7 +1,7 @@
 #include "CTML.h"
 
 // tests if two strings are equivelent to each other
-const bool assert_strings_equal(const std::string& left, const std::string& right) {
+bool assert_strings_equal(const std::string& left, const std::string& right) {
 	return (left == right);
 }
 
