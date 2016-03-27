@@ -89,13 +89,13 @@ Along with the `CTML::Document` class, CTML provides a `CTML::Node` class. `CTML
 
 `CTML::Node` contains eight methods for manipulation of a current node. Almost all of these methods are chainable.
 
-There are two methods for getting a string from `CTML::Node`. The first of which is `CTML::Node::ToString(bool, int)`, which returns the current node and all of its children as a string representing each element. The parameter, `readability` is an enum defined in `Node.h`, which currently can be equal to, `SINGLE_LINE`, `MULTILINE`, or `MULTILINE_BR`. This only determines how the string should be formatted. The `indentLevel` parameter is used to determine how many four space blocks the children of each element be indented by, this only is used if `readability` is either `MULTILINE` or `MULTILINE_BR`.
+There are two methods for getting a string from `CTML::Node`. The first of which is `CTML::Node::ToString(CTML::Readability, int)`, which returns the current node and all of its children as a string representing each element. The parameter, `readability` is an enum defined in `Node.h`, which currently can be equal to, `SINGLE_LINE`, `MULTILINE`, or `MULTILINE_BR`. This only determines how the string should be formatted. The `indentLevel` parameter is used to determine how many four space blocks the children of each element be indented by, this only is used if `readability` is either `MULTILINE` or `MULTILINE_BR`.
 
 The other method is `CTML:::Node:GetTreeString(int)`, which returns the current node and it's children as a tree view. The `indentLevel` parameter is an integer representing how many indents (four spaces each) should be used in representing the nesting of the nodes.
 
 **Note all of the methods below are chainable**
 
-The `CTML::Node::SetName(std::string)` method sets the current name of the Node, such as div, span, e.t.c. You can also add classes to the name. For example, if you type `div.container.fluid` as the name, `CTML::Node::ToString(true, 0)` would return `<div class="container fluid"></div>`
+The `CTML::Node::SetName(std::string)` method sets the current name of the Node, such as div, span, e.t.c. You can also add classes to the name. For example, if you type `div.container.fluid` as the name, `CTML::Node::ToString(CTML::Readability::SINGLE_LINE, 0)` would return `<div class="container fluid"></div>`
 
 The `CTML::Node::SetAttribute(std::string, std::string)` method sets an attribute determined by the `name` parameter to the `value` parameter. For example, `CTML::Node::SetAttribute("href", "#test")` would set the node's href attribute to `test`
 
