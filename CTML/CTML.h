@@ -5,6 +5,6 @@
 #pragma once
 namespace CTML {
 	static int INDENT_SPACES = 4;
-};
+}
 #include "Node.h"
 #include "Document.h"
