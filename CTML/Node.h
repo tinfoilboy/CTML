@@ -4,10 +4,9 @@
 */
 #pragma once
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <sstream>
-#include <iostream>
 #include <algorithm>
 
 namespace CTML {
@@ -42,8 +41,8 @@ namespace CTML {
 		std::string m_content;
 		// the child elements of this node
 		std::vector<Node> m_children;
-		// a map of attributes, name is the attribute name and the value is the attribute value
-		std::map<std::string, std::string> m_attributes;
+		// an unordered_map of attributes, name is the attribute name and the value is the attribute value
+		std::unordered_map<std::string, std::string> m_attributes;
 	public:
 		// default constructor, does nothing
 		Node() = default;
@@ -230,7 +229,7 @@ namespace CTML {
 		std::string _GetFormattedContent(Readability readability, const std::string& indent) const {
 			std::string result;
 			std::istringstream iss(m_content);
-			// if we are using either varient of multiple lines, run this.
+			// if we are using either variant of multiple lines, run this.
 			if (readability == Readability::MULTILINE || readability == Readability::MULTILINE_BR) {
 				// the newline string, differs between MULTILINE and MULTILINE_BR
 				std::string newline = ((readability == Readability::MULTILINE_BR) ? "\n" + indent + "<br>\n" : "\n");

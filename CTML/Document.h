@@ -4,12 +4,8 @@
 */
 #pragma once
 #include "Node.h"
-#include <vector>
-#include <map>
 #include <string>
-#include <iostream>
 #include <fstream>
-#include <algorithm>
 
 namespace CTML {
 	class Document {
