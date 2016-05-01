@@ -230,7 +230,7 @@ namespace CTML {
 		std::string _GetFormattedContent(Readability readability, const std::string& indent) const {
 			std::string result;
 			std::istringstream iss(m_content);
-			// if we are using either varient of multiple lines, run this.
+			// if we are using either variant of multiple lines, run this.
 			if (readability == Readability::MULTILINE || readability == Readability::MULTILINE_BR) {
 				// the newline string, differs between MULTILINE and MULTILINE_BR
 				std::string newline = ((readability == Readability::MULTILINE_BR) ? "\n" + indent + "<br>\n" : "\n");
