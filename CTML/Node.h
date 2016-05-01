@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <string>
 #include <sstream>
-#include <iostream>
 #include <algorithm>
 
 namespace CTML {
@@ -42,7 +41,7 @@ namespace CTML {
 		std::string m_content;
 		// the child elements of this node
 		std::vector<Node> m_children;
-		// an unordered_map(hashmap) of attributes, name is the attribute name and the value is the attribute value
+		// an unordered_map of attributes, name is the attribute name and the value is the attribute value
 		std::unordered_map<std::string, std::string> m_attributes;
 	public:
 		// default constructor, does nothing
