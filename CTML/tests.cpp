@@ -1,8 +1,13 @@
 #include <iostream>
 #include "CTML.h"
+#include <chrono>
 
+// std chrono has the worst namespace abuse i've ever seen, so therefore, i'm typedeffing
+typedef std::chrono::high_resolution_clock high_res_clock;
+typedef std::chrono::milliseconds millis;
 
 using namespace CTML;
+
 // tests if two strings are equivelent to each other
 bool assert_strings_equal(const std::string& left, const std::string& right) {
 	return (left == right);
@@ -77,9 +82,14 @@ void run_attribute_test() {
 
 }
 
-int main(int argc, char **argv) {
+int main() {
+	high_res_clock::time_point begin = high_res_clock::now();
 	run_escape_test();
 	run_document_test();
 	run_class_test();
 	run_attribute_test();
+	high_res_clock::time_point end = high_res_clock::now();
+	millis ms = std::chrono::duration_cast<millis>(end - begin);
+	std::cout << "Tests ran in " << ms.count() << "ms" << std::endl;
+	return 0;
 }
