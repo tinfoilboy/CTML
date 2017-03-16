@@ -39,6 +39,10 @@ namespace CTML {
 		std::string m_id;
 		// the content of this node
 		std::string m_content;
+		// determines whether or not to add a closing tag (ie. </name>)
+		// if this is false, it also doesn't add content to the tag
+		// as there is nowhere to place content
+		bool m_closeTag = true;
 		// the child elements of this node
 		std::vector<Node> m_children;
 		// an unordered_map of attributes, name is the attribute name and the value is the attribute value
@@ -97,23 +101,28 @@ namespace CTML {
 				}
 				// close the beginning tag
 				elem += ">";
-				// if multiline is specified and the content/children aren't empty, add a newline
-				if (isMultiline && (!m_content.empty() || !m_children.empty()))
-					elem += "\n";
-				// if we have m_content to append
-				if (!m_content.empty()) {
-					// format the elements content based on the readability, as well as the indent level for content
-					elem += _GetFormattedContent(readability, indentContent);
+				// only add the content, as well as the closing tag if it is
+				// specified to do so
+				if (m_closeTag)
+				{
+					// if multiline is specified and the content/children aren't empty, add a newline
+					if (isMultiline && (!m_content.empty() || !m_children.empty()))
+						elem += "\n";
+					// if we have m_content to append
+					if (!m_content.empty()) {
+						// format the elements content based on the readability, as well as the indent level for content
+						elem += _GetFormattedContent(readability, indentContent);
+					}
+					// get every child node from the m_children list
+					for (std::size_t i = 0; i < m_children.size(); ++i) {
+						const auto& childNode = m_children[i];
+						// append the child node to the elem string.
+						// if this is not the last child node append a newline if multiline
+						elem += childNode.ToString(readability, indentLevel + 1) + ((i != m_children.size() - 1 && isMultiline) ? "\n" : "");
+					}
+					// if multiline is specified and the content/children aren't empty, add a newline and indent
+					elem += ((isMultiline && (!m_content.empty() || !m_children.empty())) ? "\n" + indent : "") + "</" + m_name + ">";
 				}
-				// get every child node from the m_children list
-				for (std::size_t i = 0; i < m_children.size(); ++i) {
-					const auto& childNode = m_children[i];
-					// append the child node to the elem string.
-					// if this is not the last child node append a newline if multiline
-					elem += childNode.ToString(readability, indentLevel + 1) + ((i != m_children.size() - 1 && isMultiline) ? "\n" : "");
-				}
-				// if multiline is specified and the content/children aren't empty, add a newline and indent
-				elem += ((isMultiline && (!m_content.empty() || !m_children.empty())) ? "\n" + indent : "") + "</" + m_name + ">";
 			}
 			else if (this->m_type == NodeType::DOCUMENT_TYPE) {
 				// just construct the docm_type from the m_content given, if readability is wanted, add a newline
@@ -222,6 +231,12 @@ namespace CTML {
 		
 		Node& AppendChild(Node child) {
 			m_children.push_back(child);
+			return *this;
+		}
+
+		Node& AddClosingTag(bool close)
+		{
+			this->m_closeTag = close;
 			return *this;
 		}
 

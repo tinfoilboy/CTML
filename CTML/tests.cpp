@@ -82,12 +82,26 @@ void run_attribute_test() {
 
 }
 
+// this test checks if the close tag method actually works
+void run_no_close() {
+	const auto nodeString = "<img src=\"funnypicture.png\" alt=\"Hilarious image\">";
+	Node testNode = Node("img").SetAttribute("src", "funnypicture.png").SetAttribute("alt", "Hilarious image").AddClosingTag(false);
+	// make sure the test node and the test string match
+	std::string output = testNode.ToString(Readability::SINGLE_LINE, 1);
+	bool test = assert_strings_equal(output, nodeString);
+	std::cout << "No Close Test " << ((test) ? "passed!" : "failed!") << std::endl <<
+		"Node Output: " << output << std::endl <<
+		// use a double end line at the end for spacing between tests
+		"Expected Output: " << nodeString << std::endl << std::endl;
+}
+
 int main() {
 	high_res_clock::time_point begin = high_res_clock::now();
 	run_escape_test();
 	run_document_test();
 	run_class_test();
 	run_attribute_test();
+	run_no_close();
 	high_res_clock::time_point end = high_res_clock::now();
 	millis ms = std::chrono::duration_cast<millis>(end - begin);
 	std::cout << "Tests ran in " << ms.count() << "ms" << std::endl;
