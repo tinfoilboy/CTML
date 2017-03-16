@@ -234,8 +234,7 @@ namespace CTML {
 			return *this;
 		}
 
-		Node& AddClosingTag(bool close)
-		{
+		Node& UseClosingTag(bool close) {
 			this->m_closeTag = close;
 			return *this;
 		}

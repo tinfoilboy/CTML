@@ -85,7 +85,7 @@ void run_attribute_test() {
 // this test checks if the close tag method actually works
 void run_no_close() {
 	const auto nodeString = "<img src=\"funnypicture.png\" alt=\"Hilarious image\">";
-	Node testNode = Node("img").SetAttribute("src", "funnypicture.png").SetAttribute("alt", "Hilarious image").AddClosingTag(false);
+	Node testNode = Node("img").SetAttribute("src", "funnypicture.png").SetAttribute("alt", "Hilarious image").UseClosingTag(false);
 	// make sure the test node and the test string match
 	std::string output = testNode.ToString(Readability::SINGLE_LINE, 1);
 	bool test = assert_strings_equal(output, nodeString);
