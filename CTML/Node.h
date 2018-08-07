@@ -97,7 +97,7 @@ namespace CTML {
 				}
 				// make an iterator for each attribute
 				for (const auto& attr : m_attributes) {
-					elem += " " + attr.first + "=\"" + attr.second + "\"";
+						elem += " " + attr.first + "=\"" + attr.second + "\"";
 				}
 				// close the beginning tag
 				elem += ">";
@@ -356,4 +356,10 @@ namespace CTML {
 			}
 		}
 	};
+
+	inline Node& operator<<(Node& node_parent, Node& node_child)
+	{
+		node_parent.AppendChild(node_child);
+		return node_parent;
+	}
 }
