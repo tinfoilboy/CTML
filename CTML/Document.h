@@ -75,5 +75,17 @@ namespace CTML {
 			}
 			return false;
 		}
+
+		// Return head node 
+		Node & head()
+		{
+			return this->m_head;
+		}
+
+		// Return body node 
+		Node & body()
+		{
+			return this->m_body;
+		}
 	};
 }
