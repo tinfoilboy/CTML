@@ -3,6 +3,7 @@
 	uses the MIT License (https://github.com/tinfoilboy/CFML/blob/master/LICENSE)
 */
 #pragma once
+#include <cassert>
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -177,6 +178,10 @@ namespace CTML {
 			return *this;
 		}
 
+		std::string const& Name() const {
+			return m_name;
+		}
+
 		std::string GetAttribute(const std::string& name) const {
 			// the class attribute is tracked with m_classes, so we return that instead of m_attributes[name]
 			if (name != "class" && name != "id" && m_attributes.count(name) > 0)
@@ -232,6 +237,13 @@ namespace CTML {
 		Node& AppendChild(Node child) {
 			m_children.push_back(child);
 			return *this;
+		}
+
+		Node& GetChildByName(const std::string& name) {
+			auto it = std::find_if(m_children.begin(), m_children.end(),
+				[&name](Node const& child) { return child.Name() == name; });
+			assert(it != m_children.end());
+			return *it;
 		}
 
 		Node& UseClosingTag(bool close) {
