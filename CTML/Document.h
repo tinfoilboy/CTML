@@ -11,30 +11,29 @@ namespace CTML {
 	class Document {
 		// the doctype of this document
 		Node m_doctype;
-		// the head tag of this document
-		Node m_head;
-		// the body tag of this document
-		Node m_body;
+		// the html of this document
+		Node m_html;
 	public:
 		// the default constructor for a document
 		Document() {
 			// create and set the doctype to html
 			this->m_doctype = Node("", "html");
 			this->m_doctype.SetType(NodeType::DOCUMENT_TYPE);
+			this->m_html = Node("html");
 			// create the head tag
-			this->m_head = Node("head");
+			this->m_html.AppendChild(Node("head"));
 			// create the body tag
-			this->m_body = Node("body");
+			this->m_html.AppendChild(Node("body"));
 		}
 
 		// add a node to the head element
 		void AddNodeToHead(Node node) {
-			this->m_head.AppendChild(node);
+			this->head().AppendChild(node);
 		}
 
 		// add a node to the body element
 		void AddNodeToBody(Node node) {
-			this->m_body.AppendChild(node);
+			this->body().AppendChild(node);
 		}
 
 		// gets the current document as a string
@@ -43,25 +42,15 @@ namespace CTML {
 			std::string doc = "";
 			// add the doctype to the string
 			doc += m_doctype.ToString(readability, 0);
-			// every document needs an html tag, add it
-			doc += "<html>";
-			// if we want readability, append a newline to the html beginning tag
-			doc += ((isMultiline) ? "\n" : "");
-			// append the head tag and its children
-			doc += m_head.ToString(readability, 1) + ((isMultiline) ? "\n" : "");
-			// append the body tag and its children
-			doc += m_body.ToString(readability, 1) + ((isMultiline) ? "\n" : "");
-			// close the html tag
-			doc += "</html>";
+			// every document needs an html tag, add it (and it's including head and body tags)
+			doc += m_html.ToString(readability, 0) + ((isMultiline) ? "\n" : "");
 			return doc;
 		}
 
 		// get the current document as a tree represented in a string
 		std::string ToTree() const {
 			std::string treeStr = "";
-			treeStr += "html\n";
-			treeStr += m_head.GetTreeString(0);
-			treeStr += m_body.GetTreeString(0);
+			treeStr += m_html.GetTreeString(0);
 			return treeStr;
 		}
 
@@ -76,16 +65,22 @@ namespace CTML {
 			return false;
 		}
 
+		// Return document root node (i.e. <html>)
+		Node & html()
+		{
+			return this->m_html;
+		}
+
 		// Return head node 
 		Node & head()
 		{
-			return this->m_head;
+			return m_html.GetChildByName("head");
 		}
 
 		// Return body node 
 		Node & body()
 		{
-			return this->m_body;
+			return m_html.GetChildByName("body");
 		}
 	};
 }
