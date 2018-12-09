@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(CTML)
 
+set (CMAKE_CXX_STANDARD 11)
+
 set(CTML_TEST_SOURCE ${PROJECT_SOURCE_DIR}/tests/tests.cpp)
 
 add_library(CTML INTERFACE)

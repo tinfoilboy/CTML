@@ -12,7 +12,6 @@ addons:
       - clang-6.0
       - cmake
 script:
-  - rm -r build/
   - mkdir build/
   - cd build/
   - cmake ../
