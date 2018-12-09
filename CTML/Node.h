@@ -69,7 +69,7 @@ namespace CTML {
 		Node(const std::string& name, const std::string& content) {
 			this->m_type = NodeType::ELEMENT;
 			this->SetName(name);
-			this->m_content = content;
+			this->AppendText(content);
 		}
 
 		// return this node as an html string
