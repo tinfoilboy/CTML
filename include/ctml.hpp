@@ -598,13 +598,13 @@ namespace CTML
         }
 
         // add a node to the head element
-        void AddNodeToHead(const Node& node)
+        void AppendNodeToHead(const Node& node)
         {
             this->head().AppendChild(node);
         }
 
         // add a node to the body element
-        void AddNodeToBody(const Node& node)
+        void AppendNodeToBody(const Node& node)
         {
             this->body().AppendChild(node);
         }
