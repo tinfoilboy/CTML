@@ -168,12 +168,12 @@ namespace CTML
             }
             else if (m_type == NodeType::ELEMENT)
             {
-                output << "<" << m_name << " ";
+                output << "<" << m_name << "";
 
                 // output classes if there are any to output
                 if (!m_classes.empty())
                 {
-                    output << "class=\"";
+                    output << " class=\"";
 
                     for (size_t index = 0; index < m_classes.size(); index++)
                     {
@@ -183,12 +183,12 @@ namespace CTML
                             output << " ";
                     }
 
-                    output << "\" ";
+                    output << "\"";
                 }
 
                 // output the ID of the class if one is specified
                 if (!m_id.empty())
-                    output << "id=\"" << m_id << "\"";
+                    output << " id=\"" << m_id << "\"";
 
                 for (const auto& attr : m_attributes)
                     output << " " << attr.first + "=\"" << attr.second + "\"";
@@ -643,7 +643,7 @@ namespace CTML
          * The root HTML tag for this document.
          */
         Node m_html;
-        
+
     };
 }
 #endif

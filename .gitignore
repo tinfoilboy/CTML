@@ -9,5 +9,5 @@ Release/
 *.user
 *.gitattributes
 *.sdf
+build/
 main.cpp
-dirent.h
