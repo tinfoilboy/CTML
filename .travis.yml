@@ -12,7 +12,9 @@ addons:
       - clang-6.0
       - cmake
 script:
-  - cmake ./ build/
+  - rm -r build/
+  - mkdir build/
   - cd build/
+  - cmake ../
   - cmake --build ./
   - CTEST_OUTPUT_ON_FAILURE=1 ctest -j 2
