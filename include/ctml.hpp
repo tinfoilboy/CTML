@@ -392,6 +392,9 @@ namespace CTML
             return *this;
         }
         
+        /**
+         * Append a child node to this node.
+         */
         Node& AppendChild(Node child)
         {
             m_children.push_back(child);
@@ -413,6 +416,37 @@ namespace CTML
                     .SetContent(text);
 
             m_children.push_back(textNode);
+
+            return *this;
+        }
+
+        /**
+         * Remove a Node from the children by index.
+         * 
+         * The index is zero-based for removal.
+         */
+        Node& RemoveChild(size_t index)
+        {
+            m_children.erase(m_children.begin() + index);
+
+            return *this;
+        }
+
+        /**
+         * Remove a Node by its selector, which you can find with
+         * the `GetSelector` method.
+         * 
+         * This selector must be in the format of `elementName.classNames#id`.
+         */
+        Node& RemoveChild(const std::string& selector)
+        {
+            auto it = std::find_if(
+                m_children.begin(),
+                m_children.end(),
+                [&selector](Node const& child) { return child.GetSelector() == selector; }
+            );
+
+            m_children.erase(it);
 
             return *this;
         }

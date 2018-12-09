@@ -89,6 +89,32 @@ TEST_CASE("nodes are constructed correctly", "[node_construct]")
         REQUIRE(node.ToString() == "<img src=\"image.png\" alt=\"an image\">");
     }
 
+    SECTION("remove child by index")
+    {
+        CTML::Node node("div");
+
+        node.AppendChild(CTML::Node("p", "hello world!"))
+            .AppendChild(CTML::Node("span", "this is a removal test"))
+            .AppendChild(CTML::Node("a", "i should be removed"));
+
+        node.RemoveChild(2);
+
+        REQUIRE(node.ToString() == "<div><p>hello world!</p><span>this is a removal test</span></div>");
+    }
+
+    SECTION("remove child by basic selector")
+    {
+        CTML::Node node("div");
+
+        node.AppendChild(CTML::Node("p.not-right#child", "hello world! don't remove me!"))
+            .AppendChild(CTML::Node("p.nice-one", "don't remove me either!"))
+            .AppendChild(CTML::Node("p.bad-one", "remove me!"));
+
+        node.RemoveChild("p.bad-one");
+
+        REQUIRE(node.ToString() == "<div><p class=\"not-right\" id=\"child\">hello world! don't remove me!</p><p class=\"nice-one\">don't remove me either!</p></div>");
+    }
+
     SECTION("multiple line to string")
     {
         CTML::Document document;
