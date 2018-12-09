@@ -1,0 +1,18 @@
+language: cpp
+compiler:
+  - clang
+  - gcc
+dist: xenial
+sudo: require
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - clang-6.0
+      - cmake
+script:
+  - cmake ./ build/
+  - cd build/
+  - cmake --build ./
+  - CTEST_OUTPUT_ON_FAILURE=1 ctest -j 2
