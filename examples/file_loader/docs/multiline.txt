@@ -1,5 +1,0 @@
-This is a multi-line file.
-
-This should render newlines correctly.
-
-Also, CTML is great!

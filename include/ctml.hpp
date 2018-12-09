@@ -569,5 +569,81 @@ namespace CTML
             }
         }
     };
+
+    class Document {
+    public:
+        // the default constructor for a document
+        Document()
+            :
+            m_doctype(NodeType::DOCUMENT_TYPE),
+            m_html("html")
+        {
+            // append a head and body tag to the html
+            this->m_html.AppendChild(Node("head"));
+            this->m_html.AppendChild(Node("body"));
+        }
+
+        // add a node to the head element
+        void AddNodeToHead(const Node& node)
+        {
+            this->head().AppendChild(node);
+        }
+
+        // add a node to the body element
+        void AddNodeToBody(const Node& node)
+        {
+            this->body().AppendChild(node);
+        }
+
+        // gets the current document as a string
+        std::string ToString(const StringFormatting& formatting=StringFormatting::SINGLE_LINE) const
+        {
+            std::stringstream output;
+
+            output << m_doctype.ToString(formatting);
+
+            output << m_html.ToString(formatting);
+
+            return output.str();
+        }
+
+        /**
+         * Return the root HTML document node.
+         */
+        Node& html()
+        {
+            return this->m_html;
+        }
+
+        /**
+         * Return the head element for the document.
+         */
+        Node& head()
+        {
+            return m_html.GetChildByName("head");
+        }
+
+        /**
+         * Return the body element for the document.
+         */
+        Node& body()
+        {
+            return m_html.GetChildByName("body");
+        }
+
+    private:
+        /**
+         * The doctype node for this document.
+         * 
+         * Defaults to be a HTML5 doctype.
+         */
+        Node m_doctype;
+
+        /**
+         * The root HTML tag for this document.
+         */
+        Node m_html;
+        
+    };
 }
 #endif
