@@ -93,11 +93,11 @@ namespace CTML
                 m_content = name;
 
                 // escape all of the content text for common characters
-                m_content = _ReplaceAllOccurrences(m_content, "&", "&amp;");
-                m_content = _ReplaceAllOccurrences(m_content, "<", "&lt;");
-                m_content = _ReplaceAllOccurrences(m_content, ">", "&gt;");
-                m_content = _ReplaceAllOccurrences(m_content, "\"", "&quot;");
-                m_content = _ReplaceAllOccurrences(m_content, "'", "&apos;");
+                m_content = ReplaceAllOccurrences(m_content, "&", "&amp;");
+                m_content = ReplaceAllOccurrences(m_content, "<", "&lt;");
+                m_content = ReplaceAllOccurrences(m_content, ">", "&gt;");
+                m_content = ReplaceAllOccurrences(m_content, "\"", "&quot;");
+                m_content = ReplaceAllOccurrences(m_content, "'", "&apos;");
             }
             else if (type == NodeType::ELEMENT)
             {
@@ -249,7 +249,7 @@ namespace CTML
 
                 elementName = name.substr(0, startIndex);
 
-                _ParseClassesAndIDS(name.substr(startIndex));
+                ParseClassesAndIDS(name.substr(startIndex));
             }
 
             this->m_name = elementName;
@@ -536,7 +536,7 @@ namespace CTML
         /**
          * Replace every occurrence of a string within a string using the specified replace.
          */
-        std::string _ReplaceAllOccurrences(std::string& replacer, const std::string& replacable, const std::string& replace) const
+        std::string ReplaceAllOccurrences(std::string& replacer, const std::string& replacable, const std::string& replace) const
         {
             size_t start = 0;
 
@@ -550,22 +550,7 @@ namespace CTML
             return replacer;
         }
 
-        size_t _CountOccurrences(std::string& finder, const std::string& findable) const 
-        {
-            size_t occurrences = 0;
-            size_t start       = 0;
-            
-            // while not at the end of the string, count up one occurrence
-            while ((start = finder.find(findable, start)) != std::string::npos)
-            {
-                occurrences++;
-                start += findable.length();
-            }
-            
-            return occurrences;
-        }
-
-        void _ParseClassesAndIDS(const std::string& input)
+        void ParseClassesAndIDS(const std::string& input)
         {
             NodeParserState state = NodeParserState::NONE;
             std::string     temp  = "";
