@@ -9,6 +9,7 @@
 
 namespace CTML {
 	class Document {
+	private:
 		// the doctype of this document
 		Node m_doctype;
 		// the html of this document

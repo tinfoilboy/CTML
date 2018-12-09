@@ -15,7 +15,13 @@ namespace CTML {
 	// DOCUMENT_TYPE doesn't use the element name, but uses
 	// the content to determine the document type to use
 	// ELEMENT is just a normal element
-	enum class NodeType { DOCUMENT_TYPE, ELEMENT };
+	// TEXT is an element that only prints content
+	enum class NodeType
+	{
+		DOCUMENT_TYPE,
+		ELEMENT,
+		TEXT
+	};
 
 	// a few enums for readability of the HTML
 	// SINGLE_LINE returns the string as one line
@@ -30,6 +36,7 @@ namespace CTML {
 	enum class NodeParser { NONE, CLASS, ID };
 
 	class Node {
+	private:
 		// the type of node this
 		NodeType m_type;
 		// the name of this node, e.g. div, a, span, e.t.c.
@@ -129,6 +136,12 @@ namespace CTML {
 				// just construct the docm_type from the m_content given, if readability is wanted, add a newline
 				elem += "<!DOCTYPE " + m_content + ">" + ((isMultiline) ? "\n" : "");
 			}
+			// print out a text node as merely the content, multiline or indents don't matter
+			// as the content should just display along with the other pieces of the element
+			else if (this->m_type == NodeType::TEXT)
+			{
+				elem += m_content;
+			}
 			return elem;
 		}
 
@@ -216,6 +229,12 @@ namespace CTML {
 			return *this;
 		}
 
+		/**
+		 * Deprecated for non-text type elements.
+		 * 
+		 * Instead of using "SetContent" on a normal
+		 * element, append a text node to the children.
+		 */
 		Node& SetContent(const std::string& text) {
 			this->m_content = text;
 			return *this;
@@ -236,6 +255,38 @@ namespace CTML {
 		
 		Node& AppendChild(Node child) {
 			m_children.push_back(child);
+			return *this;
+		}
+
+		/**
+		 * Append a single text node to the element.
+		 * 
+		 * This is the recommended way to set content now
+		 * as opposed to using the SetContent method.
+		 */
+		Node& AppendText(const std::string& text)
+		{
+			Node textNode;
+
+			textNode.SetType(NodeType::TEXT)
+					.SetContent(text)
+					.EscapeContent();
+
+			m_children.push_back(textNode);
+
+			return *this;
+		}
+
+		/**
+		 * Run an escaper for a text node.
+		 */
+		Node& EscapeContent()
+		{
+			// replaces all instances of "<" in the content with "&lt;", to escape rogue HTML
+			m_content = _ReplaceAllOccurrences(m_content, "<", "&lt;");
+			// replaces all instances of ">" in the content with "&gt;" to escape rogue HTML
+			m_content = _ReplaceAllOccurrences(m_content, ">", "&gt;");
+
 			return *this;
 		}
 

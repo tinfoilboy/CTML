@@ -63,7 +63,7 @@ Below is an example of `CTML::Document::WriteToFile(std::string, CTML::Readabili
 int main()
 {
     CTML::Document doc;
-    doc.AddNodeToBody(CTML::Node("a.link").SetContent("Anchor").SetAttribute("href", "http://www.example.com"));
+    doc.AddNodeToBody(CTML::Node("a.link").AppendText("Anchor").SetAttribute("href", "http://www.example.com"));
     return doc.WriteToFile("index.html", CTML::Readability::MULTILINE);
 }
 ```
@@ -101,7 +101,9 @@ The `CTML::Node::SetAttribute(std::string, std::string)` method sets an attribut
 
 The `CTML::Node::SetType(CTML::NodeType)` method sets the current type of the node, can be either `ELEMENT` or `DOCUMENT_TYPE`.
 
-The `CTML::Node::SetContent(std::string)` method sets the current text content of the node, this is always outputted in the beginning of the node, before the children, unless the node type is `DOCUMENT_TYPE` in which then it is right after the `!DOCTYPE ` string.
+The `CTML::Node::SetContent(std::string)` method is deprecated for non-text node types. Use the `CTML::Node::AppendText(std::string)` method instead.
+
+The `CTML::Node::AppendText(std::string)` method appends a new text node in place for the element.
 
 The `CTML::Node::ToggleClass(std::string)` method either adds or removes a class from an element, depending on if the class is already on the element.
 
@@ -115,7 +117,7 @@ Below is an example of a document with a div in the body, with an a tag as the c
 int main()
 {
     CTML::Document doc;
-    doc.AddNodeToBody(CTML::Node("a.link").SetContent("Anchor").SetAttribute("href", "http://www.example.com"));
+    doc.AddNodeToBody(CTML::Node("a.link").AppendText("Anchor").SetAttribute("href", "http://www.example.com"));
     std::cout << doc.ToString(CTML::Readability::MULTILINE);
     return 0;
 }

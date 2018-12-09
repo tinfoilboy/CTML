@@ -17,7 +17,8 @@ bool assert_strings_equal(const std::string& left, const std::string& right) {
 void run_escape_test() {
 	// what the node's to string should be equal to
 	const auto htmlString = "<a class=\"button\">&lt;script&gt;alert(\"ha ha hacked!\")&lt;/script&gt;</a>";
-	Node node("a.button", "<script>alert(\"ha ha hacked!\")</script>");
+	Node node("a.button");
+	node.AppendText("<script>alert(\"ha ha hacked!\")</script>");
 	// the node's string output
 	const auto nodeString = node.ToString(Readability::SINGLE_LINE, 0);
 	auto test = assert_strings_equal(htmlString, nodeString);
@@ -33,7 +34,7 @@ void run_document_test() {
 	const auto htmlString = "<!DOCTYPE html><html><head></head><body><h1>&lt;test!&gt;</h1></body></html>";
 	Document doc;
 	// the string output of the document
-	doc.AddNodeToBody(Node("h1", "<test!>"));
+	doc.AddNodeToBody(Node("h1").AppendText("<test!>"));
 	const auto docString = doc.ToString(Readability::SINGLE_LINE);
 	auto test = assert_strings_equal(htmlString, docString);
 	std::cout << "Document Test " << ((test) ? "passed!" : "failed!") << std::endl <<
@@ -85,7 +86,7 @@ void run_attribute_test() {
 // this test checks if the close tag method actually works
 void run_no_close() {
 	const auto nodeString = "<img src=\"funnypicture.png\" alt=\"Hilarious image\">";
-	Node testNode = Node("img").SetAttribute("src", "funnypicture.png").SetAttribute("alt", "Hilarious image").UseClosingTag(false);
+	Node testNode = Node("img").SetAttribute("alt", "Hilarious image").SetAttribute("src", "funnypicture.png").UseClosingTag(false);
 	// make sure the test node and the test string match
 	std::string output = testNode.ToString(Readability::SINGLE_LINE, 1);
 	bool test = assert_strings_equal(output, nodeString);
