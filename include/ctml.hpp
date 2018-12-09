@@ -136,16 +136,26 @@ namespace CTML
          * This function is recursive, so ToString is called for every Node that is a
          * child of this node.
          *
-         * You may optionally specify a StringFormatting enum for how to format the string.
+         * You may optionally specify a StringFormatting enum for how to format the string
+         * as well as an indent level to append a number of spaces before this string.
          */
-        std::string ToString(const StringFormatting& formatting=StringFormatting::SINGLE_LINE) const
+        std::string ToString(
+            const StringFormatting& formatting=StringFormatting::SINGLE_LINE,
+            bool trailingNewline=false,
+            const uint32_t indentLevel=0
+        ) const
         {
             std::stringstream output;
+
+            std::string indent = "";
+
+            if (indentLevel > 0 && formatting != StringFormatting::SINGLE_LINE)
+                indent = std::string(indentLevel * 4, ' ');
 
             // format a comment node with only the set content
             if (m_type == NodeType::COMMENT)
             {
-                output << "<!--" << m_content << "-->";
+                output << indent << "<!--" << m_content << "-->";
 
                 if (formatting == StringFormatting::MULTIPLE_LINES)
                     output << "\n";
@@ -154,7 +164,7 @@ namespace CTML
             // as the specified type to use
             else if (m_type == NodeType::DOCUMENT_TYPE)
             {
-                output << "<!DOCTYPE " << m_content << ">";
+                output << indent << "<!DOCTYPE " << m_content << ">";
 
                 if (formatting == StringFormatting::MULTIPLE_LINES)
                     output << "\n";
@@ -164,11 +174,11 @@ namespace CTML
             // document output
             else if (m_type == NodeType::TEXT)
             {
-                output << m_content;
+                output << indent << m_content;
             }
             else if (m_type == NodeType::ELEMENT)
             {
-                output << "<" << m_name << "";
+                output << indent << "<" << m_name << "";
 
                 // output classes if there are any to output
                 if (!m_classes.empty())
@@ -203,11 +213,15 @@ namespace CTML
                 if (m_closeTag)
                 {
                     for (const auto& child : m_children)
-                        output << child.ToString(formatting);
+                        output << child.ToString(
+                            formatting,
+                            true,
+                            indentLevel + 1
+                        );
 
-                    output << "</" << m_name << ">";
+                    output << indent << "</" << m_name << ">";
 
-                    if (formatting == StringFormatting::MULTIPLE_LINES)
+                    if (formatting == StringFormatting::MULTIPLE_LINES && trailingNewline)
                         output << "\n";
                 }
             }
@@ -575,7 +589,7 @@ namespace CTML
         // the default constructor for a document
         Document()
             :
-            m_doctype(NodeType::DOCUMENT_TYPE),
+            m_doctype(NodeType::DOCUMENT_TYPE, "html"),
             m_html("html")
         {
             // append a head and body tag to the html

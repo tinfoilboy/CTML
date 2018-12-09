@@ -88,4 +88,29 @@ TEST_CASE("nodes are constructed correctly", "[node_construct]")
 
         REQUIRE(node.ToString() == "<img src=\"image.png\" alt=\"an image\">");
     }
+
+    SECTION("multiple line to string")
+    {
+        CTML::Document document;
+
+        document.AddNodeToBody(CTML::Node("a"));
+        document.AddNodeToBody(CTML::Node("div").AppendChild(CTML::Node("a")));
+        document.AddNodeToBody(CTML::Node("nav"));
+
+        REQUIRE(document.ToString(CTML::StringFormatting::MULTIPLE_LINES) == R"(<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <a>
+        </a>
+        <div>
+            <a>
+            </a>
+        </div>
+        <nav>
+        </nav>
+    </body>
+</html>)");
+    }
 }
