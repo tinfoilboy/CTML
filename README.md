@@ -1,6 +1,8 @@
 # CTML
 
 [![Build Status](https://travis-ci.com/tinfoilboy/CTML.svg?branch=master)](https://travis-ci.com/tinfoilboy/CTML)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Github Releases](https://img.shields.io/github/release/tinfoilboy/CTML.svg)](https://github.com/tinfoilboy/CTML/releases)
 
 CTML is a C++ HTML document constructor, that was designed to be simple to use and implement.
 Has no dependencies on any other projects, only the C++ standard library.
