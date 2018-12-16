@@ -38,10 +38,10 @@ namespace CTML
      */
     enum class NodeType : uint8_t
     {
-        COMMENT       = 0x00,
-        DOCUMENT_TYPE = 0x01,
-        ELEMENT       = 0x02,
-        TEXT          = 0x03
+        COMMENT,
+        DOCUMENT_TYPE,
+        ELEMENT,
+        TEXT
     };
 
     /**
@@ -50,9 +50,9 @@ namespace CTML
      */
     enum class NodeParserState : uint8_t
     {
-        NONE  = 0x00,
-        CLASS = 0x01,
-        ID    = 0x02
+        NONE,
+        CLASS,
+        ID
     };
 
     /**
@@ -60,8 +60,8 @@ namespace CTML
      */
     enum class StringFormatting : uint8_t
     {
-        SINGLE_LINE    = 0x00,
-        MULTIPLE_LINES = 0x01
+        SINGLE_LINE,
+        MULTIPLE_LINES
     };
 
     class Node
@@ -603,9 +603,12 @@ namespace CTML
         }
     };
 
-    class Document {
+    class Document
+    {
     public:
-        // the default constructor for a document
+        /**
+         * Construct a simple HTML5 document with a head and body.
+         */
         Document()
             :
             m_doctype(NodeType::DOCUMENT_TYPE, "html"),
@@ -616,19 +619,27 @@ namespace CTML
             this->m_html.AppendChild(Node("body"));
         }
 
-        // add a node to the head element
+        /**
+         * Append a single node element to the <head> tag.
+         */
         void AppendNodeToHead(const Node& node)
         {
             this->head().AppendChild(node);
         }
 
-        // add a node to the body element
+        /**
+         * Append a single node to the <body> tag.
+         */
         void AppendNodeToBody(const Node& node)
         {
             this->body().AppendChild(node);
         }
 
-        // gets the current document as a string
+        /**
+         * Grab the entire document as a string, with an optional
+         * StringFormatting enum accepted to change between
+         * outputting one line and multiple lines.
+         */
         std::string ToString(const StringFormatting& formatting=StringFormatting::SINGLE_LINE) const
         {
             std::stringstream output;
