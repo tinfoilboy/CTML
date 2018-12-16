@@ -70,7 +70,7 @@ CTML::Node node("p.text#para", "Hello world!");
 Which would output the following HTML:
 
 ```html
-<p class="text" id="para"></p>
+<p class="text" id="para">Hello world!</p>
 ```
 
 You can then append children to these Node instances by using the `CTML::Node::AppendChild(CTML::Node)` method, like below:
