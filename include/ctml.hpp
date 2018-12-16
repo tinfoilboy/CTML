@@ -64,6 +64,18 @@ namespace CTML
         MULTIPLE_LINES
     };
 
+    /**
+     * A class that represents any type of HTML node to construct in CTML.
+     * 
+     * For each node, there is at the minimum a type that represents the kind
+     * of node that is being constructed, see the `NodeType` enum for the
+     * different kinds of nodes that are able to be constructed at the moment.
+     * 
+     * Each node also has a vector of children that house other nodes.
+     * 
+     * Once you have constructed a node to your liking, you can get a string
+     * representation of this node through the ToString method.
+     */
     class Node
     {
     public:
@@ -603,6 +615,10 @@ namespace CTML
         }
     };
 
+    /**
+     * A simple class that represents a HTML5 document with an <html> tag
+     * that houses <head> and <body> tags.
+     */
     class Document
     {
     public:
