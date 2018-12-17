@@ -115,6 +115,16 @@ TEST_CASE("nodes are constructed correctly", "[node_construct]")
         REQUIRE(node.ToString() == "<div><p class=\"not-right\" id=\"child\">hello world! don't remove me!</p><p class=\"nice-one\">don't remove me either!</p></div>");
     }
 
+    SECTION("attributes escaped")
+    {
+        CTML::Node node("p", "Hello world!");
+
+        node.SetAttribute("title", "\"Hello world\"")
+            .SetAttribute("onclick", "<onclick()>");
+
+        REQUIRE(node.ToString() == "<p onclick=\"&lt;onclick()&gt;\" title=\"&quot;Hello world&quot;\">Hello world!</p>");
+    }
+
     SECTION("multiple line to string")
     {
         CTML::Document document;

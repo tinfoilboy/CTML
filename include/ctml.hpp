@@ -213,7 +213,18 @@ namespace CTML
                     output << " id=\"" << m_id << "\"";
 
                 for (const auto& attr : m_attributes)
-                    output << " " << attr.first + "=\"" << attr.second + "\"";
+                {
+                    // escape the attribute value of invalid characters
+                    std::string value = attr.second;
+
+                    value = ReplaceAllOccurrences(value, "&", "&amp;");
+                    value = ReplaceAllOccurrences(value, "<", "&lt;");
+                    value = ReplaceAllOccurrences(value, ">", "&gt;");
+                    value = ReplaceAllOccurrences(value, "\"", "&quot;");
+                    value = ReplaceAllOccurrences(value, "'", "&apos;");
+
+                    output << " " << attr.first + "=\"" << value + "\"";
+                }
 
                 output << ">";
 
