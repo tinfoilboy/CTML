@@ -115,7 +115,7 @@ namespace CTML
             {
                 this->SetName(name);
 
-                if (!m_content.empty())
+                if (!content.empty())
                     this->AppendText(content);
             }
         }
