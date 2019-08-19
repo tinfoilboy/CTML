@@ -223,7 +223,12 @@ namespace CTML
                     value = ReplaceAllOccurrences(value, "\"", "&quot;");
                     value = ReplaceAllOccurrences(value, "'", "&apos;");
 
-                    output << " " << attr.first + "=\"" << value + "\"";
+                    // attributes with just the name are identical to blank valued attributes
+                    // thus, output only the attribute name if a blank value is specified.
+                    if (value.empty())
+                        output << " " << attr.first;
+                    else
+                        output << " " << attr.first << "=\"" << value + "\"";
                 }
 
                 output << ">";

@@ -125,6 +125,15 @@ TEST_CASE("nodes are constructed correctly", "[node_construct]")
         REQUIRE(node.ToString() == "<p onclick=\"&lt;onclick()&gt;\" title=\"&quot;Hello world&quot;\">Hello world!</p>");
     }
 
+    SECTION("blank attribute output as name only")
+    {
+        CTML::Node node("button", "Log in");
+
+        node.SetAttribute("disabled", "");
+
+        REQUIRE(node.ToString() == "<button disabled>Log in</button>");
+    }
+
     SECTION("multiple line to string")
     {
         CTML::Document document;
