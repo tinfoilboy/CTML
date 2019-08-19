@@ -11,3 +11,4 @@ Release/
 *.sdf
 build/
 main.cpp
+.computare.yml
