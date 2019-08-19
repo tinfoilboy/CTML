@@ -30,7 +30,6 @@
 #include <unordered_map>
 #include <sstream>
 #include <algorithm>
-#include <string_view>
 
 namespace CTML
 {
@@ -40,8 +39,8 @@ namespace CTML
      */
     std::string replace_all(
         std::string& original,
-        std::string_view target,
-        std::string_view replacement
+        const std::string& target,
+        const std::string& replacement
     )
     {
         size_t start = 0;
@@ -115,19 +114,22 @@ namespace CTML
      */
     struct ToStringOptions
     {
-        StringFormatting formatting = StringFormatting::SINGLE_LINE;
-        
-        /**
-         * Whether a new line character should be added at the end of an element
-         */
-        bool trailingNewline = false;
-        
-        uint32_t indentLevel = 0;
+        StringFormatting formatting;
+        bool trailingNewline;
+        uint32_t indentLevel;
+        bool escapeContent;
 
-        /**
-         * Whether text content of a Node should be escaped or left alone.
-         */
-        bool escapeContent = true;
+        ToStringOptions(
+            StringFormatting formatting=StringFormatting::SINGLE_LINE,
+            bool trailingNewLine=false,
+            uint32_t indentLevel=0,
+            bool escapeContent=true
+            )
+            :
+            formatting(formatting),
+            trailingNewline(trailingNewLine),
+            indentLevel(indentLevel),
+            escapeContent(escapeContent) {}
     };
 
     /**
@@ -208,7 +210,7 @@ namespace CTML
          * You may optionally specify a StringFormatting enum for how to format the string
          * as well as an indent level to append a number of spaces before this string.
          */
-        std::string ToString(const ToStringOptions& options={}) const
+        std::string ToString(ToStringOptions options={}) const
         {
             std::stringstream output;
 
@@ -293,12 +295,12 @@ namespace CTML
                 if (m_closeTag)
                 {
                     for (const auto& child : m_children)
-                        output << child.ToString({
+                        output << child.ToString(ToStringOptions(
                             options.formatting,
                             true,
                             options.indentLevel + 1,
                             true
-                        });
+                        ));
 
                     output << indent << "</" << m_name << ">";
 
@@ -448,7 +450,7 @@ namespace CTML
         /**
          * Sets the content of a non-element node.
          */
-        Node& SetContent(std::string_view text)
+        Node& SetContent(const std::string& text)
         {
             this->m_content = text;
         
@@ -487,7 +489,7 @@ namespace CTML
 
         /**
          * Append a single text node to the element.
-         * std::string_view
+         * const std::string&
          * This is the recommended way to set content now
          * as opposed to using the SetContent method.
          */
@@ -521,7 +523,7 @@ namespace CTML
          * 
          * This selector must be in the format of `elementName.classNames#id`.
          */
-        Node& RemoveChild(std::string_view selector)
+        Node& RemoveChild(const std::string& selector)
         {
             auto it = std::find_if(
                 m_children.begin(),
@@ -537,7 +539,7 @@ namespace CTML
         /**
          * Get a single child by its element name.
          */
-        Node& GetChildByName(std::string_view name)
+        Node& GetChildByName(const std::string& name)
         {
             auto it = std::find_if(
                 m_children.begin(),
@@ -616,7 +618,7 @@ namespace CTML
          */
         std::unordered_map<std::string, std::string> m_attributes;
 
-        void ParseClassesAndIDS(std::string_view input)
+        void ParseClassesAndIDS(const std::string& input)
         {
             NodeParserState state = NodeParserState::NONE;
             std::string     temp  = "";
@@ -710,7 +712,7 @@ namespace CTML
          * StringFormatting enum accepted to change between
          * outputting one line and multiple lines.
          */
-        std::string ToString(const ToStringOptions& options) const
+        std::string ToString(ToStringOptions options={}) const
         {
             std::stringstream output;
 

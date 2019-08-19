@@ -144,7 +144,7 @@ TEST_CASE("nodes are constructed correctly", "[node_construct]")
         document.AppendNodeToBody(CTML::Node("div").AppendChild(CTML::Node("a")));
         document.AppendNodeToBody(CTML::Node("nav"));
 
-        REQUIRE(document.ToString({ .formatting = CTML::StringFormatting::MULTIPLE_LINES }) == R"(<!DOCTYPE html>
+        REQUIRE(document.ToString(CTML::ToStringOptions(CTML::StringFormatting::MULTIPLE_LINES)) == R"(<!DOCTYPE html>
 <html>
     <head>
     </head>
