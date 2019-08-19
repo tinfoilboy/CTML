@@ -30,9 +30,48 @@
 #include <unordered_map>
 #include <sstream>
 #include <algorithm>
+#include <string_view>
 
 namespace CTML
 {
+    /**
+     * Searches the original string and replaces all occurances of the specified
+     * string.
+     */
+    std::string replace_all(
+        std::string& original,
+        std::string_view target,
+        std::string_view replacement
+    )
+    {
+        size_t start = 0;
+
+        // while we are not at the end of the string, find the replacable string
+        while ((start = original.find(target, start)) != std::string::npos)
+        {
+            original.replace(start, target.length(), replacement);
+            start += replacement.length();
+        }
+        
+        return original;
+    }
+
+    /**
+     * Convenience function to escape HTML characters from a value.
+     */
+    std::string html_escape(std::string value)
+    {
+        std::string output = value;
+
+        output = replace_all(output, "&", "&amp;");
+        output = replace_all(output, "<", "&lt;");
+        output = replace_all(output, ">", "&gt;");
+        output = replace_all(output, "\"", "&quot;");
+        output = replace_all(output, "'", "&apos;");
+
+        return output;
+    }
+
     /**
      * An enum representing the types of HTML nodes that can be constructed.
      */
@@ -101,16 +140,7 @@ namespace CTML
             else if (type == NodeType::DOCUMENT_TYPE)
                 m_content = name;
             else if (type == NodeType::TEXT)
-            {
-                m_content = name;
-
-                // escape all of the content text for common characters
-                m_content = ReplaceAllOccurrences(m_content, "&", "&amp;");
-                m_content = ReplaceAllOccurrences(m_content, "<", "&lt;");
-                m_content = ReplaceAllOccurrences(m_content, ">", "&gt;");
-                m_content = ReplaceAllOccurrences(m_content, "\"", "&quot;");
-                m_content = ReplaceAllOccurrences(m_content, "'", "&apos;");
-            }
+                m_content = html_escape(name);
             else if (type == NodeType::ELEMENT)
             {
                 this->SetName(name);
@@ -215,13 +245,7 @@ namespace CTML
                 for (const auto& attr : m_attributes)
                 {
                     // escape the attribute value of invalid characters
-                    std::string value = attr.second;
-
-                    value = ReplaceAllOccurrences(value, "&", "&amp;");
-                    value = ReplaceAllOccurrences(value, "<", "&lt;");
-                    value = ReplaceAllOccurrences(value, ">", "&gt;");
-                    value = ReplaceAllOccurrences(value, "\"", "&quot;");
-                    value = ReplaceAllOccurrences(value, "'", "&apos;");
+                    std::string value = html_escape(attr.second);
 
                     // attributes with just the name are identical to blank valued attributes
                     // thus, output only the attribute name if a blank value is specified.
@@ -354,6 +378,8 @@ namespace CTML
                 return *this;
             }
 
+            // if trying to manually set a class attribute, split the value by
+            // spaces and then add the classes to the class list
             if (name == "class")
             {
                 m_classes.clear();
@@ -395,7 +421,7 @@ namespace CTML
          */
         Node& SetContent(const std::string& text)
         {
-            this->m_content = text;
+            this->m_content = html_escape(text);
         
             return *this;
         }
@@ -441,7 +467,7 @@ namespace CTML
             Node textNode;
 
             textNode.SetType(NodeType::TEXT)
-                    .SetContent(text);
+                    .SetContent(html_escape(text));
 
             m_children.push_back(textNode);
 
@@ -560,23 +586,6 @@ namespace CTML
          * This is only used for elements.
          */
         std::unordered_map<std::string, std::string> m_attributes;
-
-        /**
-         * Replace every occurrence of a string within a string using the specified replace.
-         */
-        std::string ReplaceAllOccurrences(std::string& replacer, const std::string& replacable, const std::string& replace) const
-        {
-            size_t start = 0;
-
-            // while we are not at the end of the string, find the replacable string
-            while ((start = replacer.find(replacable, start)) != std::string::npos)
-            {
-                replacer.replace(start, replacable.length(), replace);
-                start += replace.length();
-            }
-            
-            return replacer;
-        }
 
         void ParseClassesAndIDS(const std::string& input)
         {
