@@ -53,9 +53,11 @@ TEST_CASE("nodes are constructed correctly", "[node_construct]")
     {
         CTML::Node node("div");
 
+        std::string welcome = ", welcome back!";
+
         node.AppendText("Hello ")
             .AppendChild(CTML::Node("span", "Maxwell"))
-            .AppendText(", welcome back!");
+            .AppendText(welcome);
 
         REQUIRE(node.ToString() == "<div>Hello <span>Maxwell</span>, welcome back!</div>");
     }

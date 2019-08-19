@@ -155,8 +155,8 @@ namespace CTML
          */
         Node(
             const NodeType& type,
-            const std::string& name="",
-            const std::string& content=""
+            std::string name="",
+            std::string content=""
         )
             :
             m_type(type)
@@ -180,7 +180,7 @@ namespace CTML
         /**
          * Create an element node with the name specified.
          */
-        Node(const std::string& name)
+        Node(std::string name)
             :
             m_type(NodeType::ELEMENT)
         {
@@ -191,7 +191,7 @@ namespace CTML
          * Create an element node with the specified name and containing a text node
          * with the content specified.
          */
-        Node(const std::string& name, const std::string& content)
+        Node(std::string name, std::string content)
             :
             m_type(NodeType::ELEMENT)
         {
@@ -315,25 +315,23 @@ namespace CTML
          * 
          * Allows for Emmet-like abbreviations such as "div.className#id".
          */
-        Node& SetName(const std::string& name)
+        Node& SetName(std::string name)
         {
             const auto periodIndex = name.find('.');
             const auto poundIndex  = name.find('#');
 
-            std::string elementName = name;
-            
             // check and see if the name contains either a period or a pound symbol
             // which means that this is an element name that can use emmet abbrivations
             if (periodIndex != std::string::npos || poundIndex != std::string::npos)
             {
                 size_t startIndex = std::min(periodIndex, poundIndex);
 
-                elementName = name.substr(0, startIndex);
+                this->m_name = name.substr(0, startIndex);
 
                 ParseClassesAndIDS(name.substr(startIndex));
             }
-
-            this->m_name = elementName;
+            else
+                this->m_name = name;
 
             return *this;
         }
@@ -371,10 +369,12 @@ namespace CTML
             if (name == "id")
                 return m_id;
 
-            if (m_attributes.count(name) <= 0)
-                return "";
+            auto find = m_attributes.find(name);
 
-            return m_attributes.at(name);
+            if (find != m_attributes.end())
+                return find->second;
+            
+            return "";
         }
 
         /**
@@ -398,7 +398,7 @@ namespace CTML
         /**
          * Set a single attribute for a Node to a value.
          */
-        Node& SetAttribute(const std::string& name, const std::string& value)
+        Node& SetAttribute(std::string name, std::string value)
         {
             if (name == "id")
             {
@@ -448,7 +448,7 @@ namespace CTML
         /**
          * Sets the content of a non-element node.
          */
-        Node& SetContent(const std::string& text)
+        Node& SetContent(std::string_view text)
         {
             this->m_content = text;
         
@@ -458,7 +458,7 @@ namespace CTML
         /**
          * Toggle the state of a class based on its name.
          */
-        Node& ToggleClass(const std::string& className)
+        Node& ToggleClass(std::string className)
         {
             std::vector<std::string>::iterator find = std::find(
                 m_classes.begin(),
@@ -487,11 +487,11 @@ namespace CTML
 
         /**
          * Append a single text node to the element.
-         * 
+         * std::string_view
          * This is the recommended way to set content now
          * as opposed to using the SetContent method.
          */
-        Node& AppendText(const std::string& text)
+        Node& AppendText(std::string text)
         {
             Node textNode;
 
@@ -521,7 +521,7 @@ namespace CTML
          * 
          * This selector must be in the format of `elementName.classNames#id`.
          */
-        Node& RemoveChild(const std::string& selector)
+        Node& RemoveChild(std::string_view selector)
         {
             auto it = std::find_if(
                 m_children.begin(),
@@ -537,7 +537,7 @@ namespace CTML
         /**
          * Get a single child by its element name.
          */
-        Node& GetChildByName(const std::string& name)
+        Node& GetChildByName(std::string_view name)
         {
             auto it = std::find_if(
                 m_children.begin(),
@@ -616,7 +616,7 @@ namespace CTML
          */
         std::unordered_map<std::string, std::string> m_attributes;
 
-        void ParseClassesAndIDS(const std::string& input)
+        void ParseClassesAndIDS(std::string_view input)
         {
             NodeParserState state = NodeParserState::NONE;
             std::string     temp  = "";
