@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(CTML)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 set(CTML_TEST_SOURCE ${PROJECT_SOURCE_DIR}/tests/tests.cpp)
 
