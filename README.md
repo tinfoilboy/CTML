@@ -45,8 +45,9 @@ Which would output in string form as:
 <p></p>
 ```
 
-To get this string output, you would use the `CTML::Node::ToString(CTML::StringFormatting)` method.
-This method allows for passing in either `CTML::StringFormatting::SINGLE_LINE` or `CTML::StringFormatting::MULTIPLE_LINES`.
+To get this string output, you would use the `CTML::Node::ToString(CTML::ToStringOptions)` method. This method outputs a string representation of the Node and its children using the options supplied.
+
+This `ToStringOptions` structure allows the user to change whether the string outputs elements using multiple lines or one line, if nodes should have a trailing new line at the end, the indentation level of the node if outputting to multiple lines, and whether text content of an element should be escaped.
 
 You can add simple text content to this Node by changing that line to the following:
 
@@ -130,15 +131,15 @@ A simple HTML document would be created with:
 CTML::Document document;
 ```
 
-You can then output this as a string with the `CTML::Document::ToString(CTML::StringFormatting)` method.
+You can then output this as a string with the `CTML::Document::ToString(CTML::ToStringOptions)` method. This method uses the same structure that the node class uses.
 
-Using that you would get an output of:
+By using the default empty `Document::ToString` method you would get an output of:
 
 ```html
 <!DOCTYPE html><html><head></head><body></body></html>
 ```
 
-You can then append nodes to it using the `CTML::Document::AppendNodeToHead(CTML::Node)` method or the `CTML::Document::AppendNodeToBody(CTML::Node)` method.
+You can then append nodes to it using the `CTML::Document::AppendNodeToHead(CTML::Node)` or `CTML::Document::AppendNodeToBody(CTML::Node)` methods.
 
 ## License
 
