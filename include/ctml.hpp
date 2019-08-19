@@ -58,16 +58,23 @@ namespace CTML
 
     /**
      * Convenience function to escape HTML characters from a value.
+     * 
+     * Optionally disable escaping double or single quote marks for text content
+     * by setting the second value to false.
      */
-    std::string html_escape(std::string value)
+    std::string html_escape(std::string value, bool escape_quotes=true)
     {
         std::string output = value;
 
         output = replace_all(output, "&", "&amp;");
         output = replace_all(output, "<", "&lt;");
         output = replace_all(output, ">", "&gt;");
-        output = replace_all(output, "\"", "&quot;");
-        output = replace_all(output, "'", "&apos;");
+
+        if (escape_quotes)
+        {
+            output = replace_all(output, "\"", "&quot;");
+            output = replace_all(output, "'", "&apos;");
+        }
 
         return output;
     }
@@ -101,6 +108,26 @@ namespace CTML
     {
         SINGLE_LINE,
         MULTIPLE_LINES
+    };
+
+    /**
+     * A struct for options for a ToString call on a Node or Document.
+     */
+    struct ToStringOptions
+    {
+        StringFormatting formatting = StringFormatting::SINGLE_LINE;
+        
+        /**
+         * Whether a new line character should be added at the end of an element
+         */
+        bool trailingNewline = false;
+        
+        uint32_t indentLevel = 0;
+
+        /**
+         * Whether text content of a Node should be escaped or left alone.
+         */
+        bool escapeContent = true;
     };
 
     /**
@@ -140,7 +167,7 @@ namespace CTML
             else if (type == NodeType::DOCUMENT_TYPE)
                 m_content = name;
             else if (type == NodeType::TEXT)
-                m_content = html_escape(name);
+                m_content = name;
             else if (type == NodeType::ELEMENT)
             {
                 this->SetName(name);
@@ -181,25 +208,21 @@ namespace CTML
          * You may optionally specify a StringFormatting enum for how to format the string
          * as well as an indent level to append a number of spaces before this string.
          */
-        std::string ToString(
-            const StringFormatting& formatting=StringFormatting::SINGLE_LINE,
-            bool trailingNewline=false,
-            const uint32_t indentLevel=0
-        ) const
+        std::string ToString(const ToStringOptions& options={}) const
         {
             std::stringstream output;
 
             std::string indent = "";
 
-            if (indentLevel > 0 && formatting != StringFormatting::SINGLE_LINE)
-                indent = std::string(indentLevel * 4, ' ');
+            if (options.indentLevel > 0 && options.formatting != StringFormatting::SINGLE_LINE)
+                indent = std::string(options.indentLevel * 4, ' ');
 
             // format a comment node with only the set content
             if (m_type == NodeType::COMMENT)
             {
                 output << indent << "<!--" << m_content << "-->";
 
-                if (formatting == StringFormatting::MULTIPLE_LINES)
+                if (options.formatting == StringFormatting::MULTIPLE_LINES)
                     output << "\n";
             }
             // format a special document type node with the content
@@ -208,7 +231,7 @@ namespace CTML
             {
                 output << indent << "<!DOCTYPE " << m_content << ">";
 
-                if (formatting == StringFormatting::MULTIPLE_LINES)
+                if (options.formatting == StringFormatting::MULTIPLE_LINES)
                     output << "\n";
             }
             // format a text node with just the content, this node doesn't
@@ -216,7 +239,12 @@ namespace CTML
             // document output
             else if (m_type == NodeType::TEXT)
             {
-                output << indent << m_content;
+                output << indent;
+
+                if (options.escapeContent)
+                    output << html_escape(m_content, false);
+                else
+                    output << m_content;
             }
             else if (m_type == NodeType::ELEMENT)
             {
@@ -257,7 +285,7 @@ namespace CTML
 
                 output << ">";
 
-                if (formatting == StringFormatting::MULTIPLE_LINES)
+                if (options.formatting == StringFormatting::MULTIPLE_LINES)
                     output << "\n";
 
                 // if we have a closing tag, then add children as well
@@ -265,15 +293,16 @@ namespace CTML
                 if (m_closeTag)
                 {
                     for (const auto& child : m_children)
-                        output << child.ToString(
-                            formatting,
+                        output << child.ToString({
+                            options.formatting,
                             true,
-                            indentLevel + 1
-                        );
+                            options.indentLevel + 1,
+                            true
+                        });
 
                     output << indent << "</" << m_name << ">";
 
-                    if (formatting == StringFormatting::MULTIPLE_LINES && trailingNewline)
+                    if (options.formatting == StringFormatting::MULTIPLE_LINES && options.trailingNewline)
                         output << "\n";
                 }
             }
@@ -421,7 +450,7 @@ namespace CTML
          */
         Node& SetContent(const std::string& text)
         {
-            this->m_content = html_escape(text);
+            this->m_content = text;
         
             return *this;
         }
@@ -467,7 +496,7 @@ namespace CTML
             Node textNode;
 
             textNode.SetType(NodeType::TEXT)
-                    .SetContent(html_escape(text));
+                    .SetContent(text);
 
             m_children.push_back(textNode);
 
@@ -681,13 +710,13 @@ namespace CTML
          * StringFormatting enum accepted to change between
          * outputting one line and multiple lines.
          */
-        std::string ToString(const StringFormatting& formatting=StringFormatting::SINGLE_LINE) const
+        std::string ToString(const ToStringOptions& options) const
         {
             std::stringstream output;
 
-            output << m_doctype.ToString(formatting);
+            output << m_doctype.ToString(options);
 
-            output << m_html.ToString(formatting);
+            output << m_html.ToString(options);
 
             return output.str();
         }
