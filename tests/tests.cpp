@@ -104,15 +104,17 @@ TEST_CASE("nodes are constructed correctly", "[node_construct]")
         REQUIRE(node.ToString() == "<div><p>hello world!</p><span>this is a removal test</span></div>");
     }
 
-    SECTION("remove child by basic selector")
+    SECTION("remove node in place")
     {
         CTML::Node node("div");
 
+        CTML::Node badNode("p.bad-one", "remove me!");
+
         node.AppendChild(CTML::Node("p.not-right#child", "hello world! don't remove me!"))
             .AppendChild(CTML::Node("p.nice-one", "don't remove me either!"))
-            .AppendChild(CTML::Node("p.bad-one", "remove me!"));
+            .AppendChild(badNode);
 
-        node.RemoveChild("p.bad-one");
+        badNode.Remove();
 
         REQUIRE(node.ToString() == "<div><p class=\"not-right\" id=\"child\">hello world! don't remove me!</p><p class=\"nice-one\">don't remove me either!</p></div>");
     }

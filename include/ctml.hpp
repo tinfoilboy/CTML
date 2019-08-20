@@ -458,6 +458,16 @@ namespace CTML
         }
 
         /**
+         * Set the parent instance of this node.
+         */
+        Node& SetParent(Node* parent)
+        {
+            this->m_parent = parent;
+
+            return *this;
+        }
+
+        /**
          * Toggle the state of a class based on its name.
          */
         Node& ToggleClass(std::string className)
@@ -478,18 +488,42 @@ namespace CTML
         }
         
         /**
-         * Append a child node to this node.
+         * Append a constant child node to this node.
+         * 
+         * This method is used mostly when constructing a node in an append call
+         * after which then the parent node takes ownership of the node.
          */
-        Node& AppendChild(Node child)
+        Node& AppendChild(const Node& child)
         {
             m_children.push_back(child);
+
+            // once we push back, set the parent in vector so it is not lost
+            m_children.back().SetParent(this);
+
+            return *this;
+        }
+
+        /**
+         * Append a child node to this node.
+         * 
+         * This method takes a reference to the node to be appended and changes
+         * its parent to this node.
+         * 
+         * This is for when using the Remove() call on a node outside of the
+         * children vector.
+         */
+        Node& AppendChild(Node& child)
+        {
+            m_children.push_back(child);
+
+            child.SetParent(this);
 
             return *this;
         }
 
         /**
          * Append a single text node to the element.
-         * const std::string&
+         * 
          * This is the recommended way to set content now
          * as opposed to using the SetContent method.
          */
@@ -498,11 +532,27 @@ namespace CTML
             Node textNode;
 
             textNode.SetType(NodeType::TEXT)
-                    .SetContent(text);
+                    .SetContent(text)
+                    .SetParent(this);
 
             m_children.push_back(textNode);
 
             return *this;
+        }
+
+        /**
+         * Removes this particular node from its parent.
+         */
+        void Remove()
+        {
+            auto it = std::find_if(
+                m_parent->GetChildren().begin(),
+                m_parent->GetChildren().end(),
+                [&](Node const& child) { return child.GetSelector() == this->GetSelector(); }
+            );
+
+            if (it != m_parent->GetChildren().end())
+                m_parent->RemoveChild(std::distance(m_parent->GetChildren().begin(), it));
         }
 
         /**
@@ -513,25 +563,6 @@ namespace CTML
         Node& RemoveChild(size_t index)
         {
             m_children.erase(m_children.begin() + index);
-
-            return *this;
-        }
-
-        /**
-         * Remove a Node by its selector, which you can find with
-         * the `GetSelector` method.
-         * 
-         * This selector must be in the format of `elementName.classNames#id`.
-         */
-        Node& RemoveChild(const std::string& selector)
-        {
-            auto it = std::find_if(
-                m_children.begin(),
-                m_children.end(),
-                [&selector](Node const& child) { return child.GetSelector() == selector; }
-            );
-
-            m_children.erase(it);
 
             return *this;
         }
@@ -560,7 +591,23 @@ namespace CTML
             return *this;
         }
 
+        /**
+         * Get the vector of child nodes from this node instance.
+         */
+        std::vector<Node> GetChildren()
+        {
+            return m_children;
+        }
+
     private:
+        /**
+         * The parent node for this Node instance.
+         * 
+         * This is stored for purposes of removing the node and should be set
+         * on an AppendChild call.
+         */
+        Node* m_parent = nullptr;
+
         /**
          * The type of Node for this instance.
          * 
