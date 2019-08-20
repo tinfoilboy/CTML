@@ -545,14 +545,16 @@ namespace CTML
          */
         void Remove()
         {
+            std::vector<Node> parentChildren = m_parent->GetChildren();
+
             auto it = std::find_if(
-                m_parent->GetChildren().begin(),
-                m_parent->GetChildren().end(),
+                parentChildren.begin(),
+                parentChildren.end(),
                 [&](Node const& child) { return child.GetSelector() == this->GetSelector(); }
             );
 
-            if (it != m_parent->GetChildren().end())
-                m_parent->RemoveChild(std::distance(m_parent->GetChildren().begin(), it));
+            if (it != parentChildren.end())
+                m_parent->RemoveChild(std::distance(parentChildren.begin(), it));
         }
 
         /**
