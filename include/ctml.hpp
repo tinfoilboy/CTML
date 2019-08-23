@@ -93,11 +93,14 @@ namespace CTML
      * An enum representing the state of the parser for a Node name, akin
      * to an Emmet abbreviation.
      */
-    enum class NodeParserState : uint8_t
+    enum class SelectorParserState : uint8_t
     {
         NONE,
+        ELEMENT,
         CLASS,
-        ID
+        ID,
+        ATTRIBUTE_NAME,
+        ATTRIBUTE_VALUE
     };
 
     /**
@@ -107,6 +110,18 @@ namespace CTML
     {
         SINGLE_LINE,
         MULTIPLE_LINES
+    };
+
+    /**
+     * An enum for the different types of selector tokens that can be parsed.
+     */
+    enum class SelectorTokenType : uint8_t
+    {
+        ELEMENT,
+        CLASS,
+        ID,
+        ATTRIBUTE_NAME,
+        ATTRIBUTE_VALUE
     };
 
     /**
@@ -131,6 +146,162 @@ namespace CTML
             indentLevel(indentLevel),
             escapeContent(escapeContent) {}
     };
+
+    /**
+     * A struct for selector tokens from parsing a selector.
+     */
+    struct SelectorToken
+    {
+        SelectorTokenType type;
+        std::string       value;
+    };
+
+    /**
+     * Adds a single selector token to the token vector passed in based on the
+     * state of the parser that was passed.
+     */
+    void add_selector_token(
+        std::vector<SelectorToken>& tokens,
+        SelectorParserState state,
+        const std::string& value
+    )
+    {
+        switch (state)
+        {
+            case SelectorParserState::ELEMENT:
+                tokens.push_back({ SelectorTokenType::ELEMENT, value });
+                break;
+            case SelectorParserState::CLASS:
+                tokens.push_back({ SelectorTokenType::CLASS, value });
+                break;
+            case SelectorParserState::ID:
+                tokens.push_back({ SelectorTokenType::ID, value });
+                break;
+            case SelectorParserState::ATTRIBUTE_NAME:
+                tokens.push_back({ SelectorTokenType::ATTRIBUTE_NAME, value });
+                break;
+            case SelectorParserState::ATTRIBUTE_VALUE:
+                tokens.push_back({ SelectorTokenType::ATTRIBUTE_VALUE, value });
+                break;
+            // do nothing for any other type as we can't determine a token
+            case SelectorParserState::NONE:
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Parses a string representation of a CSS selector into a vector of tokens.
+     * 
+     * This parser isn't meant to be comprehensive and robust, just merely to
+     * allow searching for elements via common selectors and to parse Emmet-like
+     * abbriviations for use in creating nodes.
+     * 
+     * This parser particularly just scans the string from start to finish
+     * character by character, and thus might be slow on very large strings
+     * or very complex selectors.
+     */
+    std::vector<SelectorToken> parse_selector(const std::string& selector)
+    {
+        std::vector<SelectorToken> tokens;
+
+        // start the parser to be parsing an element by default
+        SelectorParserState state = SelectorParserState::ELEMENT;
+
+        std::string temp = "";
+
+        for (char current : selector)
+        {
+            if (current == '.')
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                temp = "";
+
+                state = SelectorParserState::CLASS;
+
+                continue;
+            }
+            else if (current == '#')
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                temp = "";
+
+                state = SelectorParserState::ID;
+
+                continue;
+            }
+            // only treat spaces as a split character if we aren't parsing attributes
+            // as these attribute strings are allowed to have spaces
+            else if (current == ' ' && state != SelectorParserState::ATTRIBUTE_VALUE)
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                temp = "";
+
+                state = SelectorParserState::ELEMENT;
+
+                continue;
+            }
+            else if (current == '[')
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                temp = "";
+
+                state = SelectorParserState::ATTRIBUTE_NAME;
+
+                continue;
+            }
+            else if (current == '=' && state == SelectorParserState::ATTRIBUTE_NAME)
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                temp = "";
+
+                state = SelectorParserState::ATTRIBUTE_VALUE;
+
+                continue;
+            }
+            // ignore quotes for attribute values as they aren't necessary for
+            // the value of the attribute
+            else if (current == '"' && state == SelectorParserState::ATTRIBUTE_VALUE)
+            {
+                continue;
+            }
+            // ignore right square brackets if we are parsing an attribute name
+            // or an attribute value
+            else if (
+                current == ']' &&
+                (state == SelectorParserState::ATTRIBUTE_NAME ||
+                 state == SelectorParserState::ATTRIBUTE_VALUE)
+            )
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                temp = "";
+
+                state = SelectorParserState::NONE;
+
+                continue;
+            }
+
+            temp += current;
+        }
+
+        // if we still have a temporary value parsed, just add it to the tokens
+        if (!temp.empty())
+            add_selector_token(tokens, state, temp);
+
+        return tokens;
+    }
 
     /**
      * A class that represents any type of HTML node to construct in CTML.
@@ -315,25 +486,79 @@ namespace CTML
         /**
          * Set the name of this element.
          * 
-         * Allows for Emmet-like abbreviations such as "div.className#id".
+         * You may also enter a CSS selector-like string for the name to fill
+         * in pieces of this element, such as classes, id, and attributes.
+         * 
+         * Also for this function, the element name should be the first piece
+         * of the selector, and if it is not, the name will not be set correctly.
          */
-        Node& SetName(std::string name)
+        Node& SetName(const std::string& name)
         {
-            const auto periodIndex = name.find('.');
-            const auto poundIndex  = name.find('#');
+            std::vector<SelectorToken> tokens = parse_selector(name);
 
-            // check and see if the name contains either a period or a pound symbol
-            // which means that this is an element name that can use emmet abbrivations
-            if (periodIndex != std::string::npos || poundIndex != std::string::npos)
+            bool firstToken = true;
+            bool skipNext   = false;
+
+            for (size_t index = 0; index < tokens.size(); index++)
             {
-                size_t startIndex = std::min(periodIndex, poundIndex);
+                if (skipNext)
+                {
+                    skipNext = false;
 
-                this->m_name = name.substr(0, startIndex);
+                    continue;
+                }
 
-                ParseClassesAndIDS(name.substr(startIndex));
+                SelectorToken& token = tokens.at(index);
+
+                // Cannot continue with selector if the first element is not
+                // an actual element name token
+                if (firstToken && token.type != SelectorTokenType::ELEMENT)
+                    break;
+
+                // For this method, only allow one name to be used at a time
+                // thus any other name token will overwrite the name used.
+                if (token.type == SelectorTokenType::ELEMENT)
+                    this->m_name = token.value;
+
+                // Add to the class list when a class token is hit
+                if (token.type == SelectorTokenType::CLASS)
+                    this->m_classes.push_back(token.value);
+
+                // Overwrite the current ID if that token is hit
+                if (token.type == SelectorTokenType::ID)
+                    this->m_id = token.value;
+
+                // Attributes are special in that the value can be ommitted for
+                // a blank attribute, since that is still valid, a lookahead is
+                // performed and if the value is found as the next token, it is
+                // added to the attribute map and the next token is skipped.
+                //
+                // otherwise, the blank token is added
+                if (token.type == SelectorTokenType::ATTRIBUTE_NAME)
+                {
+                    std::string attrValue = "";
+
+                    // try and get the next token as a lookahead
+                    if (tokens.size() > index + 1)
+                    {
+                        SelectorToken& next = tokens.at(index + 1);
+                    
+                        // found a value token, set the value string and skip
+                        // this token after adding the attribute
+                        if (next.type == SelectorTokenType::ATTRIBUTE_VALUE)
+                        {
+                            attrValue = next.value;
+                        
+                            skipNext = true;
+                        }
+                    }
+
+                    m_attributes[token.value] = attrValue;
+                }
+
+                if (firstToken)
+                    firstToken = false;
             }
-            else
-                this->m_name = name;
 
             return *this;
         }
@@ -666,58 +891,6 @@ namespace CTML
          * This is only used for elements.
          */
         std::unordered_map<std::string, std::string> m_attributes;
-
-        void ParseClassesAndIDS(const std::string& input)
-        {
-            NodeParserState state = NodeParserState::NONE;
-            std::string     temp  = "";
-
-            for (unsigned int i = 0; i < input.size(); i++)
-            {
-                // the current character being iterated
-                char current = input[i];
-
-                if (state == NodeParserState::NONE)
-                {
-                    if (current == '.')
-                        state = NodeParserState::CLASS;
-                    else if (current == '#')
-                        state = NodeParserState::ID;
-
-                    continue;
-                }
-                else
-                {
-                    // we are currently set up to parse something, so add it to
-                    // the instance with its respective type and set up another
-                    // parse for an ID or class
-                    if (current == '.' || current == '#')
-                    {
-                        if (state == NodeParserState::CLASS)
-                            m_classes.push_back(temp);
-                        else
-                            m_id = temp;
-
-                        temp.clear();
-                        
-                        state = ((current == '.') ? NodeParserState::CLASS : NodeParserState::ID);
-
-                        continue;
-                    }
-                }
-
-                temp += current;
-            }
-
-            // if temp is not empty, then add the final class or ID to the element
-            if (!temp.empty())
-            {
-                if (state == NodeParserState::CLASS)
-                    m_classes.push_back(temp);
-                else if (state == NodeParserState::ID)
-                    m_id = temp;
-            }
-        }
     };
 
     /**

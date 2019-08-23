@@ -19,21 +19,18 @@ TEST_CASE("nodes are constructed correctly", "[node_construct]")
         REQUIRE(node.ToString() == "<p>Hello world!</p>");
     }
 
-    SECTION("basic node with constructor content and classes/id constructed correctly")
+    SECTION("basic node with constructor content and classes and id constructed correctly")
     {
         CTML::Node node("p.class.test#test", "Hello world!");
 
         REQUIRE(node.ToString() == "<p class=\"class test\" id=\"test\">Hello world!</p>");
     }
     
-    SECTION("basic node with constructor content, classes/id, and attributes constructed correctly")
+    SECTION("basic node with constructor content, classes, id, and attributes constructed correctly")
     {
-        CTML::Node node("p.class.test#test", "Hello world!");
-
-        node.SetAttribute("title", "test title")
-            .SetAttribute("onclick", "onclick()");
-
-        REQUIRE(node.ToString() == "<p class=\"class test\" id=\"test\" onclick=\"onclick()\" title=\"test title\">Hello world!</p>");
+        CTML::Node node("p.class.test#test[title=\"test title\"][disabled]", "Hello world!");
+        
+        REQUIRE(node.ToString() == "<p class=\"class test\" id=\"test\" disabled title=\"test title\">Hello world!</p>");
     }
 
     SECTION("toggle class removes and adds correctly")
