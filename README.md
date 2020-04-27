@@ -121,6 +121,21 @@ Which would output as:
 <div title="Hello title!"><p>Hello world!</p> Hello again!</div>
 ```
 
+If you wish to make a self-closing element, such as an `<img>` element, you will want to use the `CTML::Node::UseClosingTag(bool)` method. This method allows you to toggle the use of the closing tag. Keep in mind that toggling this also doesn't append any of the child nodes to the output. An example of the method is below:
+
+```cpp
+CTML::Node image("img");
+
+image.SetAttribute("src", "/animage.png")
+     .UseClosingTag(false);
+```
+
+This has the following output:
+
+```html
+<img src="/animage.png">
+```
+
 ### Documents
 
 To create an HTML document that contains these nodes, you can use the `CTML::Document` class. This class includes doctype, head, and body nodes for adding nodes to.
