@@ -86,6 +86,12 @@ namespace CTML
         COMMENT,
         DOCUMENT_TYPE,
         ELEMENT,
+
+        /**
+         *We need to add multiple elements.
+         */
+        MULTIPLE_ELEMENTS,
+        
         TEXT
     };
 
@@ -320,6 +326,7 @@ namespace CTML
     public:
         Node() = default;
 
+
         /**
          * Create an empty node of the type specified.
          * 
@@ -347,6 +354,10 @@ namespace CTML
 
                 if (!content.empty())
                     this->AppendText(content);
+            }
+            else if(type == NodeType::MULTIPLE_ELEMENTS)
+            {
+                m_content = name;
             }
         }
 
@@ -479,6 +490,10 @@ namespace CTML
                         output << "\n";
                 }
             }
+            else if(m_type == NodeType::MULTIPLE_ELEMENTS)
+            {
+                output << indent << m_content;
+            }
 
             return output.str();
         }
@@ -488,7 +503,7 @@ namespace CTML
          * 
          * You may also enter a CSS selector-like string for the name to fill
          * in pieces of this element, such as classes, id, and attributes.
-         * 
+         * AppendChild
          * Also for this function, the element name should be the first piece
          * of the selector, and if it is not, the name will not be set correctly.
          */
@@ -926,7 +941,7 @@ namespace CTML
          */
         void AppendNodeToBody(const Node& node)
         {
-            this->body().AppendChild(node);
+            this->body().AppendChild(node);   
         }
 
         /**
@@ -985,3 +1000,4 @@ namespace CTML
     };
 }
 #endif
+
