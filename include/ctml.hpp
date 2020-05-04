@@ -335,8 +335,8 @@ namespace CTML
          */
         Node(
             const NodeType& type,
-            std::string name="",
-            std::string content=""
+            std::string content="",
+            std::string name=""
         )
             :
             m_type(type)
@@ -357,7 +357,9 @@ namespace CTML
             }
             else if(type == NodeType::MULTIPLE_ELEMENTS)
             {
-                m_content = name;
+                if(!name.empty())
+                    this->SetName(name);
+                m_content = content;
             }
         }
 
@@ -491,8 +493,26 @@ namespace CTML
                 }
             }
             else if(m_type == NodeType::MULTIPLE_ELEMENTS)
-            {
-                output << indent << m_content;
+            { 
+                std::string to_output = "";
+                
+                for (const auto& child: m_children)
+                { 
+                    std::size_t pos = m_content.find("<"+child.Name()+">");   
+                    pos += child.Name().length() + 2; // (tag) + (<) + (>) 
+                    if(pos != std::string::npos)
+                    {        
+                        auto p0 = m_content.substr(0,pos);
+                        auto p1 = m_content.substr(pos,m_content.length());     
+
+                        p0 += child.Content();
+                        to_output = p0 + p1; 
+                    }
+                }
+                
+                output << indent << to_output;
+                if (options.formatting == StringFormatting::MULTIPLE_LINES && options.trailingNewline)
+                    output << "\n";          
             }
 
             return output.str();
@@ -697,6 +717,11 @@ namespace CTML
             return *this;
         }
 
+        std::string const& Content() const
+        {
+            return this->m_content;
+        }
+
         /**
          * Set the parent instance of this node.
          */
@@ -754,7 +779,7 @@ namespace CTML
          */
         Node& AppendChild(Node& child)
         {
-            m_children.push_back(child);
+            m_children.push_back(child); 
 
             child.SetParent(this);
 
