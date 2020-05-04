@@ -359,6 +359,7 @@ namespace CTML
             {
                 if(!name.empty())
                     this->SetName(name);
+
                 m_content = content;
             }
         }
@@ -495,21 +496,22 @@ namespace CTML
             else if(m_type == NodeType::MULTIPLE_ELEMENTS)
             { 
                 std::string to_output = "";
-                
+
                 for (const auto& child: m_children)
-                { 
-                    std::size_t pos = m_content.find("<"+child.Name()+">");   
-                    pos += child.Name().length() + 2; // (tag) + (<) + (>) 
+                {
+                    std::size_t pos = m_content.find("<"+child.Name()+">");
+                    pos += child.Name().length() + 2; // (tag) + (<) + (>)
                     if(pos != std::string::npos)
-                    {        
+                    {
                         auto p0 = m_content.substr(0,pos);
-                        auto p1 = m_content.substr(pos,m_content.length());     
+                        auto p1 = m_content.substr(pos,m_content.length());
 
                         p0 += child.Content();
-                        to_output = p0 + p1; 
+                        to_output = p0 + p1;
                     }
                 }
-                
+                if(m_children.size() < 1) to_output = m_content;
+                std::cout << to_output << std::endl;
                 output << indent << to_output;
                 if (options.formatting == StringFormatting::MULTIPLE_LINES && options.trailingNewline)
                     output << "\n";          
