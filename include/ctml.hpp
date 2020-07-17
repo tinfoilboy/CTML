@@ -37,7 +37,7 @@ namespace CTML
      * Searches the original string and replaces all occurances of the specified
      * string.
      */
-    std::string replace_all(
+    inline std::string replace_all(
         std::string& original,
         const std::string& target,
         const std::string& replacement
@@ -61,7 +61,7 @@ namespace CTML
      * Optionally disable escaping double or single quote marks for text content
      * by setting the second value to false.
      */
-    std::string html_escape(std::string value, bool escape_quotes=true)
+    inline std::string html_escape(std::string value, bool escape_quotes=true)
     {
         std::string output = value;
 
@@ -160,7 +160,7 @@ namespace CTML
      * Adds a single selector token to the token vector passed in based on the
      * state of the parser that was passed.
      */
-    void add_selector_token(
+    inline void add_selector_token(
         std::vector<SelectorToken>& tokens,
         SelectorParserState state,
         const std::string& value
@@ -201,7 +201,7 @@ namespace CTML
      * character by character, and thus might be slow on very large strings
      * or very complex selectors.
      */
-    std::vector<SelectorToken> parse_selector(const std::string& selector)
+    inline std::vector<SelectorToken> parse_selector(const std::string& selector)
     {
         std::vector<SelectorToken> tokens;
 
