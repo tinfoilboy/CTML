@@ -3,7 +3,7 @@
 #include <ctml.hpp>
 #include "catch.hpp"
 
-TEST_CASE("nodes behave correctly", "[node_behaviour]")
+TEST_CASE("nodes behave correctly", "[node_behavior]")
 {
     SECTION("toggle class removes and adds correctly")
     {
@@ -112,7 +112,7 @@ TEST_CASE("nodes behave correctly", "[node_behaviour]")
         CTML::Document document;
 
         document.AppendNodeToBody(CTML::Node("a"));
-        document.AppendNodeToBody(CTML::Node("div").AppendChild(CTML::Node("a")));
+        document.AppendNodeToBody(CTML::Node("div a"));
         document.AppendNodeToBody(CTML::Node("nav"));
 
         REQUIRE(document.ToString(CTML::ToStringOptions(CTML::StringFormatting::MULTIPLE_LINES)) == R"(<!DOCTYPE html>
@@ -130,5 +130,62 @@ TEST_CASE("nodes behave correctly", "[node_behaviour]")
         </nav>
     </body>
 </html>)");
+    }
+
+    SECTION("search by selector recurses correctly")
+    {
+        CTML::Document document;
+
+        document.AppendNodeToBody(CTML::Node("div.one div.two div.three"));
+        document.AppendNodeToBody(CTML::Node("div.two div.one div.three"));
+        document.AppendNodeToBody(CTML::Node("div.three div.two div.one"));
+        document.AppendNodeToBody(CTML::Node("div.three div.one div.two"));
+        document.AppendNodeToBody(CTML::Node("div.four div.five section.needle div.six"));
+        document.AppendNodeToBody(CTML::Node("div.seven div.eight section.needle div.nine"));
+        document.AppendNodeToBody(CTML::Node("section.needle section.needle div.ten div.eleven"));
+
+        auto divMatches = document.QuerySelector("div.one");
+
+        REQUIRE(divMatches.size() == 4);
+
+        auto needleMatches = document.QuerySelector(".needle");
+
+        REQUIRE(needleMatches.size() == 4);
+    }
+
+    SECTION("search by selector match by class and attribute")
+    {
+        CTML::Document document;
+
+        document.AppendNodeToBody(CTML::Node("div.one div.two div.three div.five[data-test=\"do not find\"]"));
+        document.AppendNodeToBody(CTML::Node("div.four div.five[data-test=\"find\"] div.six"));
+
+        auto matches = document.QuerySelector(".five[data-test=\"find\"]");
+
+        REQUIRE(matches.size() == 1);
+    }
+    
+    SECTION("search by selector match by element name")
+    {
+        CTML::Document document;
+
+        document.AppendNodeToBody(CTML::Node("div span section article header"));
+        document.AppendNodeToBody(CTML::Node("video audio section ul table"));
+
+        auto matches = document.QuerySelector("section");
+
+        REQUIRE(matches.size() == 2);
+    }
+
+    SECTION("search by selector match by id")
+    {
+        CTML::Document document;
+
+        document.AppendNodeToBody(CTML::Node("div#one div#two div#three"));
+        document.AppendNodeToBody(CTML::Node("div#two div#four div#five"));
+
+        auto matches = document.QuerySelector("#two");
+
+        REQUIRE(matches.size() == 2);
     }
 }

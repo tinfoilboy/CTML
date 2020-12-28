@@ -40,8 +40,7 @@ namespace CTML
     inline std::string replace_all(
         std::string& original,
         const std::string& target,
-        const std::string& replacement
-    )
+        const std::string& replacement)
     {
         size_t start = 0;
 
@@ -139,13 +138,11 @@ namespace CTML
             StringFormatting formatting=StringFormatting::SINGLE_LINE,
             bool trailingNewLine=false,
             uint32_t indentLevel=0,
-            bool escapeContent=true
-            )
-            :
-            formatting(formatting),
-            trailingNewline(trailingNewLine),
-            indentLevel(indentLevel),
-            escapeContent(escapeContent) {}
+            bool escapeContent=true)
+            : formatting(formatting)
+            , trailingNewline(trailingNewLine)
+            , indentLevel(indentLevel)
+            , escapeContent(escapeContent) {}
     };
 
     /**
@@ -164,8 +161,7 @@ namespace CTML
     inline void add_selector_token(
         std::vector<SelectorToken>& tokens,
         SelectorParserState state,
-        const std::string& value
-    )
+        const std::string& value)
     {
         switch (state)
         {
@@ -307,6 +303,25 @@ namespace CTML
         return tokens;
     }
 
+    using SelectorTokenItr = std::vector<SelectorToken>::iterator;
+
+    /**
+     * Structure used in selector-based search to reference groups of selectors for querying individual node matches.
+     * 
+     * Only stores begin and end iterators to cut down on copying/memory usage.
+     */
+    struct SelectorGroup
+    {
+        SelectorTokenItr begin;
+        SelectorTokenItr end;
+
+        SelectorGroup() = default;
+
+        SelectorGroup(SelectorTokenItr begin, SelectorTokenItr end)
+            : begin(begin)
+            , end(end) {}
+    };
+
     /**
      * A class that represents any type of HTML node to construct in CTML.
      * 
@@ -330,13 +345,10 @@ namespace CTML
          * Optionally, you can specify a name as well as content
          * which will be added according to the type.
          */
-        Node(
-            const NodeType& type,
+        Node(const NodeType& type,
             std::string name="",
-            std::string content=""
-        )
-            :
-            m_type(type)
+            std::string content="")
+            : m_type(type)
         {
             // Use the name of the Node for the content as content should be ignored
             if (type == NodeType::COMMENT)
@@ -358,8 +370,7 @@ namespace CTML
          * Create an element node with the name specified.
          */
         Node(std::string name)
-            :
-            m_type(NodeType::ELEMENT)
+            : m_type(NodeType::ELEMENT)
         {
             this->SetName(name);
         }
@@ -369,8 +380,7 @@ namespace CTML
          * with the content specified.
          */
         Node(std::string name, std::string content)
-            :
-            m_type(NodeType::ELEMENT)
+            : m_type(NodeType::ELEMENT)
         {
             this->SetName(name);
             this->AppendText(content);
@@ -501,93 +511,6 @@ namespace CTML
             std::vector<SelectorToken> tokens = parse_selector(name);
 
             return SetName(std::move(tokens));
-        }
-
-        /**
-         * Set the name of this element from a vector of selector tokens.
-         * 
-         * Used internally by SetName(const std::string&) for nested node creation with selectors.
-         */
-        Node& SetName(std::vector<SelectorToken>&& tokens)
-        {
-            bool firstToken = true;
-            bool skipNext   = false;
-
-            for (size_t index = 0; index < tokens.size(); index++)
-            {
-                if (skipNext)
-                {
-                    skipNext = false;
-
-                    continue;
-                }
-
-                SelectorToken& token = tokens.at(index);
-
-                // this could be an odd way to handle this, but for supporting creating multiple nested elements
-                // from a name selector, just check if we are at one such separator, then create a new node from
-                // the remaining subset of tokens that were parsed.
-                if (token.type == SelectorTokenType::SELECTOR_SEPARATOR && tokens.size() > index + 1)
-                {
-                    Node childNode;
-                    childNode.SetName(std::vector<SelectorToken>(tokens.begin() + (index + 1), tokens.end()));
-
-                    this->AppendChild(childNode);
-
-                    break;
-                }
-
-                // Cannot continue with selector if the first element is not
-                // an actual element name token
-                if (firstToken && token.type != SelectorTokenType::ELEMENT)
-                    break;
-
-                // For this method, only allow one name to be used at a time
-                // thus any other name token will overwrite the name used.
-                if (token.type == SelectorTokenType::ELEMENT)
-                    this->m_name = token.value;
-
-                // Add to the class list when a class token is hit
-                if (token.type == SelectorTokenType::CLASS)
-                    this->m_classes.push_back(token.value);
-
-                // Overwrite the current ID if that token is hit
-                if (token.type == SelectorTokenType::ID)
-                    this->m_id = token.value;
-
-                // Attributes are special in that the value can be ommitted for
-                // a blank attribute, since that is still valid, a lookahead is
-                // performed and if the value is found as the next token, it is
-                // added to the attribute map and the next token is skipped.
-                //
-                // otherwise, the blank token is added
-                if (token.type == SelectorTokenType::ATTRIBUTE_NAME)
-                {
-                    std::string attrValue = "";
-
-                    // try and get the next token as a lookahead
-                    if (tokens.size() > index + 1)
-                    {
-                        SelectorToken& next = tokens.at(index + 1);
-                    
-                        // found a value token, set the value string and skip
-                        // this token after adding the attribute
-                        if (next.type == SelectorTokenType::ATTRIBUTE_VALUE)
-                        {
-                            attrValue = next.value;
-                        
-                            skipNext = true;
-                        }
-                    }
-
-                    m_attributes[token.value] = attrValue;
-                }
-
-                if (firstToken)
-                    firstToken = false;
-            }
-
-            return *this;
         }
 
         /**
@@ -836,6 +759,55 @@ namespace CTML
         }
 
         /**
+         * Searches recursively through the child nodes to find matches to the provided string selector.
+         * 
+         * Keep in mind that this will only search *this* node's *children*, it will not return the current node.
+         */
+        std::vector<Node*> QuerySelector(const std::string& selector)
+        {
+            std::vector<SelectorToken> tokens = parse_selector(selector);
+            std::vector<SelectorGroup> groups;
+            size_t currentGroup = 0;
+
+            // start by pushing an initial group that spans the whole selector token vector, this will be updated if
+            // there are other groups in this vector 
+            groups.push_back(SelectorGroup(tokens.begin(), tokens.end()));
+
+            for (size_t index = 0; index < tokens.size(); index++)
+            {
+                auto& token = tokens.at(index);
+
+                if (token.type == SelectorTokenType::SELECTOR_SEPARATOR)
+                {
+                    // end this group at the previous token
+                    groups[currentGroup].end = tokens.begin() + (index - 1);
+
+                    // create a new group at the token after this one (if the vector has more)
+                    if (tokens.size() <= index + 1)
+                    {
+                        break;
+                    }
+
+                    groups.push_back(SelectorGroup(tokens.begin() + (index + 1), tokens.end()));
+
+                    currentGroup++;
+                }
+            }
+
+            std::vector<Node*> matches;
+
+            // now that we have selector groups, we can start our search for matches
+            for (auto& child : m_children)
+            {
+                std::vector<Node*> submatches = child.GetSelectorMatches(groups, 0);
+
+                matches.insert(matches.end(), submatches.begin(), submatches.end());
+            }
+
+            return matches;
+        }
+
+        /**
          * Set whether or not this element should have a closing tag or not.
          */
         Node& UseClosingTag(bool close)
@@ -851,6 +823,189 @@ namespace CTML
         std::vector<Node> GetChildren()
         {
             return m_children;
+        }
+
+    protected:
+        /**
+         * Check if any child nodes within this Node match the selector group passed in.
+         * 
+         * Any matches will be in the returned vector. 
+         */
+        std::vector<Node*> GetSelectorMatches(std::vector<SelectorGroup>& groups, size_t currentIndex)
+        {
+            std::vector<Node*> matches;
+
+            auto& group = groups.at(currentIndex);
+            
+            for (auto& node : m_children)
+            {
+                if (node.SelectorMatch(group.begin, group.end))
+                {
+                    // check if this is the last group, if so, add this node to the vector
+                    if (currentIndex + 1 == groups.size())
+                    {
+                        matches.push_back(&node);
+                    }
+                    else
+                    {
+                        std::vector<Node*> submatches = node.GetSelectorMatches(groups, currentIndex + 1);
+
+                        matches.insert(matches.end(), submatches.begin(), submatches.end());
+                    }
+                }
+
+                // we still want to search from the beginning of the selector on this node to recurse, so run this
+                // method again but instead with the currentIndex at 0 to restart the search at this node
+                std::vector<Node*> recurse = node.GetSelectorMatches(groups, 0);
+                
+                matches.insert(matches.end(), recurse.begin(), recurse.end());
+            }
+
+            return matches;
+        }
+
+        /**
+         * Compares the current node to a list of tokens represented by a begin and end iterator.
+         */
+        bool SelectorMatch(SelectorTokenItr begin, SelectorTokenItr end)
+        {
+            // variable used for storing name of an attribute for checking against
+            std::string attribName = "";
+
+            for (auto& itr = begin; itr != end; ++itr)
+            {
+                if (itr->type == SelectorTokenType::ELEMENT && itr->value != m_name)
+                {
+                    return false;
+                }
+
+                if (itr->type == SelectorTokenType::ID && itr->value != m_id)
+                {
+                    return false;
+                }
+
+                if (itr->type == SelectorTokenType::ATTRIBUTE_NAME)
+                {
+                    attribName = itr->value;
+
+                    continue;
+                }
+
+                if (itr->type == SelectorTokenType::CLASS)
+                {
+                    auto find = std::find_if(m_classes.begin(), m_classes.end(), [&](const std::string& cls) {
+                        return cls == itr->value;
+                    });
+
+                    if (find == m_classes.end())
+                    {
+                        return false;
+                    }
+                }
+
+                if (itr->type == SelectorTokenType::ATTRIBUTE_VALUE)
+                {
+                    auto find = std::find_if(m_attributes.begin(), m_attributes.end(), [&](std::pair<std::string, std::string> val) {
+                        return (val.first == attribName) && (val.second == itr->value);
+                    });
+
+                    if (find == m_attributes.end())
+                    {
+                        return false;
+                    }
+
+                    attribName.empty();
+                }
+            }
+
+            return true;
+        }
+
+        /**
+         * Set the name of this element from a vector of selector tokens.
+         * 
+         * Used internally by SetName(const std::string&) for nested node creation with selectors.
+         */
+        Node& SetName(std::vector<SelectorToken>&& tokens)
+        {
+            bool firstToken = true;
+            bool skipNext   = false;
+
+            for (size_t index = 0; index < tokens.size(); index++)
+            {
+                if (skipNext)
+                {
+                    skipNext = false;
+
+                    continue;
+                }
+
+                SelectorToken& token = tokens.at(index);
+
+                // this could be an odd way to handle this, but for supporting creating multiple nested elements
+                // from a name selector, just check if we are at one such separator, then create a new node from
+                // the remaining subset of tokens that were parsed.
+                if (token.type == SelectorTokenType::SELECTOR_SEPARATOR && tokens.size() > index + 1)
+                {
+                    Node childNode;
+                    childNode.SetName(std::vector<SelectorToken>(tokens.begin() + (index + 1), tokens.end()));
+
+                    this->AppendChild(childNode);
+
+                    break;
+                }
+
+                // Cannot continue with selector if the first element is not
+                // an actual element name token
+                if (firstToken && token.type != SelectorTokenType::ELEMENT)
+                    break;
+
+                // For this method, only allow one name to be used at a time
+                // thus any other name token will overwrite the name used.
+                if (token.type == SelectorTokenType::ELEMENT)
+                    this->m_name = token.value;
+
+                // Add to the class list when a class token is hit
+                if (token.type == SelectorTokenType::CLASS)
+                    this->m_classes.push_back(token.value);
+
+                // Overwrite the current ID if that token is hit
+                if (token.type == SelectorTokenType::ID)
+                    this->m_id = token.value;
+
+                // Attributes are special in that the value can be ommitted for
+                // a blank attribute, since that is still valid, a lookahead is
+                // performed and if the value is found as the next token, it is
+                // added to the attribute map and the next token is skipped.
+                //
+                // otherwise, the blank token is added
+                if (token.type == SelectorTokenType::ATTRIBUTE_NAME)
+                {
+                    std::string attrValue = "";
+
+                    // try and get the next token as a lookahead
+                    if (tokens.size() > index + 1)
+                    {
+                        SelectorToken& next = tokens.at(index + 1);
+                    
+                        // found a value token, set the value string and skip
+                        // this token after adding the attribute
+                        if (next.type == SelectorTokenType::ATTRIBUTE_VALUE)
+                        {
+                            attrValue = next.value;
+                        
+                            skipNext = true;
+                        }
+                    }
+
+                    m_attributes[token.value] = attrValue;
+                }
+
+                if (firstToken)
+                    firstToken = false;
+            }
+
+            return *this;
         }
 
     private:
@@ -931,9 +1086,8 @@ namespace CTML
          * Construct a simple HTML5 document with a head and body.
          */
         Document()
-            :
-            m_doctype(NodeType::DOCUMENT_TYPE, "html"),
-            m_html("html")
+            : m_doctype(NodeType::DOCUMENT_TYPE, "html")
+            , m_html("html")
         {
             // append a head and body tag to the html
             this->m_html.AppendChild(Node("head"));
@@ -973,11 +1127,21 @@ namespace CTML
         }
 
         /**
+         * Searches a selector from the root of the document.
+         * 
+         * Essentially shorthand for document.html().QuerySelector(const std::string&).
+         */
+        std::vector<Node*> QuerySelector(const std::string& selector)
+        {
+            return m_html.QuerySelector(selector);
+        }
+
+        /**
          * Return the root HTML document node.
          */
         Node& html()
         {
-            return this->m_html;
+            return m_html;
         }
 
         /**
