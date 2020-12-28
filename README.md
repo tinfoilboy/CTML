@@ -158,7 +158,10 @@ You can then append nodes to it using the `CTML::Document::AppendNodeToHead(CTML
 
 ### Searching Nodes
 
-If you need to perform a search through a node tree, you can use the `CTML::Node::QuerySelector(const std::string&)` method, which also has an alias of `CTML::Document::QuerySelector(const std::string&)` for searching the entire document for matches. This method operates similarly to `querySelectorAll` in JavaScript, in that it will recursively search the a node's children for matches to the selector, and return only that node match.
+There are two ways to search through the document tree for nodes. The first of these ways is to use the `CTML::Node::GetChildByName(const std::string&)` method.
+This will only search the node's immediate children without recursion, and only operates based on the name of the node, such as `div` or `section`. In addition for legacy reasons, it will only return a single node, even if there are multiple matches.
+
+If you need more fine-grained searching for nodes, you can use the `CTML::Node::QuerySelector(const std::string&)` method, which also has an alias of `CTML::Document::QuerySelector(const std::string&)` for searching the entire document for matches. This method operates similarly to `querySelectorAll` in JavaScript, in that it will recursively search the a node's children for matches to the selector, and return only that node match.
 
 For example, if you have the following document:
 
