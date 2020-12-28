@@ -156,6 +156,26 @@ By using the default empty `Document::ToString` method you would get an output o
 
 You can then append nodes to it using the `CTML::Document::AppendNodeToHead(CTML::Node)` or `CTML::Document::AppendNodeToBody(CTML::Node)` methods.
 
+### Searching Nodes
+
+If you need to perform a search through a node tree, you can use the `CTML::Node::QuerySelector(const std::string&)` method, which also has an alias of `CTML::Document::QuerySelector(const std::string&)` for searching the entire document for matches. This method operates similarly to `querySelectorAll` in JavaScript, in that it will recursively search the a node's children for matches to the selector, and return only that node match.
+
+For example, if you have the following document:
+
+```html
+<div class="one"><div class="two"><div class="three"></div></div><div>
+```
+
+And you use the following code:
+
+```cpp
+std::vector<Node*> matches = CTML::Document::QuerySelector(".one .two .three")
+```
+
+The `matches` vector will only have one child, a pointer to the node for `div.three`. This method supports searching by any combination of element name, attribute name and value, class, and ID.
+
+**Note:** This method currently only supports searching attributes as by checking equality. Any other CSS selector equivalency tests are not supported currently.
+
 ## License
 
 CTML is licensed under the MIT License, the terms of which can be seen [here](https://github.com/tinfoilboy/CTML/blob/master/LICENSE).

@@ -746,6 +746,9 @@ namespace CTML
 
         /**
          * Get a single child by its element name.
+         * 
+         * Note: This method only will return one child that is referenced by its name. If you need multiple matches
+         * or need more fine-grained search with classes, IDs, or attributes, use the QuerySelector method.
          */
         Node& GetChildByName(const std::string& name)
         {
