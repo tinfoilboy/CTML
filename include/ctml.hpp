@@ -86,7 +86,7 @@ namespace CTML
         COMMENT,
         DOCUMENT_TYPE,
         ELEMENT,
-        TEXT
+        TEXT,
     };
 
     /**
@@ -100,7 +100,7 @@ namespace CTML
         CLASS,
         ID,
         ATTRIBUTE_NAME,
-        ATTRIBUTE_VALUE
+        ATTRIBUTE_VALUE,
     };
 
     /**
@@ -109,7 +109,7 @@ namespace CTML
     enum class StringFormatting : uint8_t
     {
         SINGLE_LINE,
-        MULTIPLE_LINES
+        MULTIPLE_LINES,
     };
 
     /**
@@ -121,7 +121,8 @@ namespace CTML
         CLASS,
         ID,
         ATTRIBUTE_NAME,
-        ATTRIBUTE_VALUE
+        ATTRIBUTE_VALUE,
+        SELECTOR_SEPARATOR, // To support searching by selector as well as advanced construction
     };
 
     /**
@@ -240,6 +241,9 @@ namespace CTML
             {
                 if (!temp.empty())
                     add_selector_token(tokens, state, temp);
+
+                // add an extra token to the token vector that signifies a split
+                tokens.push_back({ SelectorTokenType::SELECTOR_SEPARATOR, "" });
 
                 temp = "";
 
@@ -496,6 +500,16 @@ namespace CTML
         {
             std::vector<SelectorToken> tokens = parse_selector(name);
 
+            return SetName(std::move(tokens));
+        }
+
+        /**
+         * Set the name of this element from a vector of selector tokens.
+         * 
+         * Used internally by SetName(const std::string&) for nested node creation with selectors.
+         */
+        Node& SetName(std::vector<SelectorToken>&& tokens)
+        {
             bool firstToken = true;
             bool skipNext   = false;
 
@@ -509,6 +523,19 @@ namespace CTML
                 }
 
                 SelectorToken& token = tokens.at(index);
+
+                // this could be an odd way to handle this, but for supporting creating multiple nested elements
+                // from a name selector, just check if we are at one such separator, then create a new node from
+                // the remaining subset of tokens that were parsed.
+                if (token.type == SelectorTokenType::SELECTOR_SEPARATOR && tokens.size() > index + 1)
+                {
+                    Node childNode;
+                    childNode.SetName(std::vector<SelectorToken>(tokens.begin() + (index + 1), tokens.end()));
+
+                    this->AppendChild(childNode);
+
+                    break;
+                }
 
                 // Cannot continue with selector if the first element is not
                 // an actual element name token

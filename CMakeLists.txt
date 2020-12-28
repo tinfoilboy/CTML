@@ -7,7 +7,7 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 
 set(CTML_TEST_SOURCES
         ${PROJECT_SOURCE_DIR}/tests/construction_tests.cpp
-        ${PROJECT_SOURCE_DIR}/tests/behaviour_tests.cpp)
+        ${PROJECT_SOURCE_DIR}/tests/behavior_tests.cpp)
 
 add_library(CTML INTERFACE)
 target_include_directories(CTML INTERFACE include/)
