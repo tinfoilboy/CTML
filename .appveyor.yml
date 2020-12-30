@@ -29,7 +29,7 @@ before_build:
     cmake -G %generator% .. 
 
 build_script:
-- cmake --build --config %CONFIGURATION% ./
+- cmake --build .\ --config %CONFIGURATION%
 
 test_script:
 - set CTEST_OUTPUT_ON_FAILURE=1
