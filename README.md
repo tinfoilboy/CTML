@@ -1,6 +1,7 @@
 # CTML
 
-[![Build Status](https://travis-ci.com/tinfoilboy/CTML.svg?branch=master)](https://travis-ci.com/tinfoilboy/CTML)
+[![TravisCI Build Status](https://img.shields.io/travis/com/tinfoilboy/ctml?logo=travis-ci)](https://travis-ci.com/tinfoilboy/CTML)
+[![AppVeyor Build Status](https://img.shields.io/appveyor/build/tinfoilboy/ctml?logo=appveyor)](https://ci.appveyor.com/project/tinfoilboy/ctml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Github Releases](https://img.shields.io/github/release/tinfoilboy/CTML.svg)](https://github.com/tinfoilboy/CTML/releases)
 
