@@ -33,4 +33,4 @@ build_script:
 
 test_script:
 - set CTEST_OUTPUT_ON_FAILURE=1
-- ctest -j 2
+- ctest -C %CONFIGURATION% -j 2
