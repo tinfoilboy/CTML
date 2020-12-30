@@ -26,10 +26,10 @@ before_build:
 - cmd: |-
     mkdir build
     cd build
-    cmake -G %generator% -A Win64 .. 
+    cmake -G %generator% .. 
 
 build_script:
-- cmake --build ./
+- cmake --build --config %CONFIGURATION% ./
 
 test_script:
 - set CTEST_OUTPUT_ON_FAILURE=1
