@@ -57,7 +57,11 @@ TEST_CASE("nodes behave correctly", "[node_behavior]")
             .SetAttribute("src", "image.png")
             .UseClosingTag(false);
 
-        REQUIRE(node.ToString() == "<img src=\"image.png\" alt=\"an image\">");
+        // attribute order does not matter, so just have both orders potentially for this case
+        bool nodeStrEqual = (node.ToString() == "<img src=\"image.png\" alt=\"an image\">") ||
+                            (node.ToString() == "<img alt=\"an image\" src=\"image.png\">");
+
+        REQUIRE(nodeStrEqual == true);
     }
 
     SECTION("remove child by index")
@@ -95,7 +99,11 @@ TEST_CASE("nodes behave correctly", "[node_behavior]")
         node.SetAttribute("title", "\"Hello world\"")
             .SetAttribute("onclick", "<onclick()>");
 
-        REQUIRE(node.ToString() == "<p onclick=\"&lt;onclick()&gt;\" title=\"&quot;Hello world&quot;\">Hello world!</p>");
+        // attribute order does not matter for this test case, so have both orders for this check
+        bool nodeStrEquals = (node.ToString() == "<p onclick=\"&lt;onclick()&gt;\" title=\"&quot;Hello world&quot;\">Hello world!</p>") ||
+                             (node.ToString() == "<p title=\"&quot;Hello world&quot;\" onclick=\"&lt;onclick()&gt;\">Hello world!</p>");
+
+        REQUIRE(nodeStrEquals == true);
     }
 
     SECTION("blank attribute output as name only")

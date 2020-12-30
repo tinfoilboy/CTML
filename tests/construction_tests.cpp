@@ -23,7 +23,11 @@ TEST_CASE("nodes are constructed correctly", "[node_construct]") {
     SECTION("basic node with constructor content, classes, id, and attributes constructed correctly") {
         CTML::Node node("p.class.test#test[title=\"test title\"][disabled]", "Hello world!");
 
-        REQUIRE(node.ToString() == "<p class=\"class test\" id=\"test\" disabled title=\"test title\">Hello world!</p>");
+        // attribute order does not matter for this test, so just have both orders
+        bool nodeStrEqual = (node.ToString() == "<p class=\"class test\" id=\"test\" disabled title=\"test title\">Hello world!</p>") ||
+                            (node.ToString() == "<p class=\"class test\" id=\"test\" title=\"test title\" disabled>Hello world!</p>");
+
+        REQUIRE(nodeStrEqual == true);
     }
 
     SECTION("multiple node construction from selector-based name") {
