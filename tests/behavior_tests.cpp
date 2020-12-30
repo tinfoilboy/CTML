@@ -188,4 +188,64 @@ TEST_CASE("nodes behave correctly", "[node_behavior]")
 
         REQUIRE(matches.size() == 2);
     }
+
+    SECTION("search by selector attribute match contains")
+    {
+        CTML::Document document;
+
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"testneedletest\"] div[data-test=\"testtesttest\"] div[data-test=\"testtesttest\"]"));
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"testtesttest\"] div[data-test=\"no\"] div[data-test=\"testneedletest\"]"));
+
+        auto matches = document.QuerySelector("[data-test*=\"needle\"]");
+
+        REQUIRE(matches.size() == 2);
+    }
+
+    SECTION("search by selector attribute match starts with")
+    {
+        CTML::Document document;
+
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"testcorrect\"] div[data-test=\"negativetest\"] div[data-test=\"negativetest\"]"));
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"negativetest\"] div[data-test=\"no\"] div[data-test=\"testcorrect\"]"));
+
+        auto matches = document.QuerySelector("[data-test^=\"test\"]");
+
+        REQUIRE(matches.size() == 2);
+    }
+
+    SECTION("search by selector attribute match ends with")
+    {
+        CTML::Document document;
+
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"testgood\"] div[data-test=\"testbad\"] div[data-test=\"testbad\"]"));
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"testbad\"] div[data-test=\"no\"] div[data-test=\"testgood\"]"));
+
+        auto matches = document.QuerySelector("[data-test$=\"good\"]");
+
+        REQUIRE(matches.size() == 2);
+    }
+
+    SECTION("search by selector attribute match containing word")
+    {
+        CTML::Document document;
+
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"test needle test\"] div[data-test=\"test test test\"] div[data-test=\"test test test\"]"));
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"test test test\"] div[data-test=\"negate\"] div[data-test=\"test needle test\"]"));
+
+        auto matches = document.QuerySelector("[data-test~=\"needle\"]");
+
+        REQUIRE(matches.size() == 2);
+    }
+
+    SECTION("search by selector attribute match is or begins hyphen word")
+    {
+        CTML::Document document;
+
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"test\"] div[data-test=\"rest-test\"] div[data-test=\"test-hyphen\"]"));
+        document.AppendNodeToBody(CTML::Node("div[data-test=\"rest-test-\"] div[data-test=\"rest-test\"] div[data-test=\"rest-test\"]"));
+
+        auto matches = document.QuerySelector("[data-test|=\"test\"]");
+
+        REQUIRE(matches.size() == 2);
+    }
 }

@@ -1,0 +1,36 @@
+version: '{build}'
+
+only_commits:
+  files:
+  - CMakeLists.txt
+  - appveyor.yml
+  - include/
+  - tests/
+
+image:
+- Visual Studio 2017
+- Visual Studio 2019
+
+configuration:
+- Release
+- Debug
+
+platform:
+- x64
+
+init:
+- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" ( set generator="Visual Studio 16 2019" )
+- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" ( set generator="Visual Studio 15 2017" )
+
+before_build:
+- cmd: |-
+    mkdir build
+    cd build
+    cmake -G %generator% -A Win64 .. 
+
+build_script:
+- cmake --build ./
+
+test_script:
+- set CTEST_OUTPUT_ON_FAILURE=1
+- ctest -j 2

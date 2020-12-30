@@ -77,6 +77,178 @@ namespace CTML
         return output;
     }
 
+    inline bool string_starts_with(const std::string& src, const std::string& comp)
+    {
+        if (src.size() < comp.size())
+        {
+            return false;
+        }
+
+        for (size_t index = 0; index < comp.size(); index++)
+        {
+            // if one character in sequence is not equal, then return false
+            if (comp[index] != src[index])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    inline bool string_ends_with(const std::string& src, const std::string& comp)
+    {
+        if (src.size() < comp.size())
+        {
+            return false;
+        }
+
+        size_t compIndex = comp.size() - 1;
+
+        for (size_t index = src.size() - 1; index > 0; index--)
+        {
+            // if one character in sequence is not equal, then return false
+            if (comp[compIndex] != src[index])
+            {
+                return false;
+            }
+
+            if (compIndex > 0)
+            {
+                compIndex--;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Internal structure for anything that compares strings by word boundaries.
+     * 
+     * Instead of copying strings for substr, this just stores the begin and end iterators that represent the word in
+     * the string. Which then is iterated over for comparison to the search word.
+     */
+    struct WordBounds
+    {
+        std::string::const_iterator begin;
+        std::string::const_iterator end;
+
+        WordBounds() = default;
+
+        WordBounds(std::string::const_iterator begin, std::string::const_iterator end)
+            : begin(begin)
+            , end(end) {}
+
+        bool equals(const std::string& string)
+        {
+            // add one to distance to account for full size
+            size_t boundLength = std::distance(begin, end);
+
+            // word cannot equal string if they are not the same size
+            if (boundLength != string.size())
+            {
+                return false;
+            }
+
+            size_t index = 0;
+
+            for (auto& itr = begin; itr != end; ++itr)
+            {
+                if ((*itr) != string[index])
+                {
+                    return false;
+                }
+
+                index++;
+            }
+
+            return true;
+        }
+    };
+
+    inline bool string_contains_word(const std::string& src, const std::string& word)
+    {
+        if (src.size() < word.size())
+        {
+            return false;
+        }
+
+        // split string into words by space
+        std::vector<WordBounds> words;
+        
+        size_t beginIndex = 0;
+
+        for (size_t index = 0; index < src.size(); index++)
+        {
+            char current = src.at(index);
+
+            if (current == ' ')
+            {
+                // start the word at the begin index, and end it at the index minus one (last char before space)
+                words.push_back({ src.begin() + beginIndex, src.begin() + index });
+
+                // start the next word boundary at the subsequent character following this space
+                beginIndex = (index + 1);
+
+                continue;
+            }
+        }
+
+        // check if we have anything left over for this string for words, and if so, push the final word back
+        if (beginIndex < word.size())
+        {
+            words.push_back({ src.begin() + beginIndex, src.end() });
+        }
+
+        for (auto& bound : words)
+        {
+            // if equals between a bound and word equals true, then we can return that we found a word
+            if (bound.equals(word))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * This is probably an *awful* function name but it's to support the |= op for selector attributes
+     * 
+     * The operator basically checks if a string is the whole word *or* if the string starts with the word followed by
+     * a hyphen.
+     */
+    inline bool string_is_or_begin_hyphen(const std::string& src, const std::string& word)
+    {
+        if (src == word)
+        {
+            return true;
+        }
+
+        if (!string_starts_with(src, word))
+        {
+            return false;
+        }
+
+        // if the string isn't big enough to contain the word plus a hyphen, ignore
+        if (src.size() < word.size() + 1)
+        {
+            return false;
+        }
+
+        // since sizes aren't zero based, this should be where the hyphen is
+        if (src.at(word.size()) != '-')
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * An enum representing the types of HTML nodes that can be constructed.
      */
@@ -121,7 +293,22 @@ namespace CTML
         ID,
         ATTRIBUTE_NAME,
         ATTRIBUTE_VALUE,
+        ATTRIBUTE_COMPARE,
         SELECTOR_SEPARATOR, // To support searching by selector as well as advanced construction
+    };
+
+    /**
+     * An enum for the different types of comparison methods that an attribute can have.
+     */
+    enum class AttributeComparisonType : uint8_t
+    {
+        NONE,
+        ATTRIBUTE_EQUAL,
+        ATTRIBUTE_CONTAINS,
+        ATTRIBUTE_CONTAINS_WORD,
+        ATTRIBUTE_STARTS_WITH,
+        ATTRIBUTE_IS_OR_BEGIN_HYPHEN,
+        ATTRIBUTE_ENDS_WITH,
     };
 
     /**
@@ -150,8 +337,17 @@ namespace CTML
      */
     struct SelectorToken
     {
-        SelectorTokenType type;
-        std::string       value;
+        SelectorTokenType       type       = SelectorTokenType::ELEMENT;
+        std::string             value      = "";
+        AttributeComparisonType comparison = AttributeComparisonType::NONE;
+
+        SelectorToken(
+            SelectorTokenType type=SelectorTokenType::ELEMENT,
+            std::string value="",
+            AttributeComparisonType comparison=AttributeComparisonType::NONE)
+            : type(type)
+            , value(value)
+            , comparison(comparison) {}
     };
 
     /**
@@ -188,6 +384,23 @@ namespace CTML
     }
 
     /**
+     * Grabs the character that is one ahead of the index passed in.
+     * 
+     * Used as a convenience method for selector parsing to get a lookahead while also doing bounds checking.
+     * 
+     * Returns either the character that is at the position one ahead of the index, or a null char.
+     */
+    inline const char get_lookahead_char(const std::string& selector, size_t index)
+    {
+        if (selector.size() <= index + 1)
+        {
+            return '\0';
+        }
+
+        return selector.at(index + 1);
+    }
+
+    /**
      * Parses a string representation of a CSS selector into a vector of tokens.
      * 
      * This parser isn't meant to be comprehensive and robust, just merely to
@@ -207,8 +420,21 @@ namespace CTML
 
         std::string temp = "";
 
-        for (char current : selector)
+        // whether to skip the following character in the selector, used for attribute matching parsing when we perform
+        // a lookahead for the equal sign on a character, if the following character is an equal sign, then we skip it
+        bool skipNext = false;
+
+        for (size_t index = 0; index < selector.size(); index++)
         {
+            const char& current = selector.at(index);
+
+            if (skipNext)
+            {
+                skipNext = false;
+
+                continue;
+            }
+
             if (current == '.')
             {
                 if (!temp.empty())
@@ -258,10 +484,93 @@ namespace CTML
 
                 continue;
             }
+            else if (current == '~' && state == SelectorParserState::ATTRIBUTE_NAME && get_lookahead_char(selector, index) == '=')
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                // add an extra token for selector match equal
+                tokens.push_back({ SelectorTokenType::ATTRIBUTE_COMPARE, "~=", AttributeComparisonType::ATTRIBUTE_CONTAINS_WORD });
+
+                temp = "";
+
+                state = SelectorParserState::ATTRIBUTE_VALUE;
+
+                skipNext = true;
+
+                continue;
+            }
+            else if (current == '|' && state == SelectorParserState::ATTRIBUTE_NAME && get_lookahead_char(selector, index) == '=')
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                // add an extra token for selector match equal
+                tokens.push_back({ SelectorTokenType::ATTRIBUTE_COMPARE, "|=", AttributeComparisonType::ATTRIBUTE_IS_OR_BEGIN_HYPHEN });
+
+                temp = "";
+
+                state = SelectorParserState::ATTRIBUTE_VALUE;
+
+                skipNext = true;
+
+                continue;
+            }
+            else if (current == '^' && state == SelectorParserState::ATTRIBUTE_NAME && get_lookahead_char(selector, index) == '=')
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                // add an extra token for selector match equal
+                tokens.push_back({ SelectorTokenType::ATTRIBUTE_COMPARE, "^=", AttributeComparisonType::ATTRIBUTE_STARTS_WITH });
+
+                temp = "";
+
+                state = SelectorParserState::ATTRIBUTE_VALUE;
+
+                skipNext = true;
+
+                continue;
+            }
+            else if (current == '$' && state == SelectorParserState::ATTRIBUTE_NAME && get_lookahead_char(selector, index) == '=')
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                // add an extra token for selector match equal
+                tokens.push_back({ SelectorTokenType::ATTRIBUTE_COMPARE, "$=", AttributeComparisonType::ATTRIBUTE_ENDS_WITH });
+
+                temp = "";
+
+                state = SelectorParserState::ATTRIBUTE_VALUE;
+
+                skipNext = true;
+
+                continue;
+            }
+            else if (current == '*' && state == SelectorParserState::ATTRIBUTE_NAME && get_lookahead_char(selector, index) == '=')
+            {
+                if (!temp.empty())
+                    add_selector_token(tokens, state, temp);
+
+                // add an extra token for selector match equal
+                tokens.push_back({ SelectorTokenType::ATTRIBUTE_COMPARE, "*=", AttributeComparisonType::ATTRIBUTE_CONTAINS });
+
+                temp = "";
+
+                state = SelectorParserState::ATTRIBUTE_VALUE;
+
+                skipNext = true;
+
+                continue;
+            }
             else if (current == '=' && state == SelectorParserState::ATTRIBUTE_NAME)
             {
                 if (!temp.empty())
                     add_selector_token(tokens, state, temp);
+
+                // add an extra token for selector match equal
+                tokens.push_back({ SelectorTokenType::ATTRIBUTE_COMPARE, "=", AttributeComparisonType::ATTRIBUTE_EQUAL });
 
                 temp = "";
 
@@ -875,6 +1184,9 @@ namespace CTML
             // variable used for storing name of an attribute for checking against
             std::string attribName = "";
 
+            // comparison method used for this particular attribute, set to NONE when not an attrib
+            AttributeComparisonType attribComp = AttributeComparisonType::NONE;
+
             for (auto& itr = begin; itr != end; ++itr)
             {
                 if (itr->type == SelectorTokenType::ELEMENT && itr->value != m_name)
@@ -894,6 +1206,13 @@ namespace CTML
                     continue;
                 }
 
+                if (itr->type == SelectorTokenType::ATTRIBUTE_COMPARE)
+                {
+                    attribComp = itr->comparison;
+                    
+                    continue;
+                }
+
                 if (itr->type == SelectorTokenType::CLASS)
                 {
                     auto find = std::find_if(m_classes.begin(), m_classes.end(), [&](const std::string& cls) {
@@ -909,7 +1228,47 @@ namespace CTML
                 if (itr->type == SelectorTokenType::ATTRIBUTE_VALUE)
                 {
                     auto find = std::find_if(m_attributes.begin(), m_attributes.end(), [&](std::pair<std::string, std::string> val) {
-                        return (val.first == attribName) && (val.second == itr->value);
+                        if (val.first != attribName)
+                        {
+                            return false;
+                        }
+
+                        if (attribComp == AttributeComparisonType::ATTRIBUTE_EQUAL && val.second != itr->value)
+                        {
+                            return false;
+                        }
+
+                        if (attribComp == AttributeComparisonType::ATTRIBUTE_CONTAINS)
+                        {
+                            auto contains = val.second.find(itr->value);
+
+                            if (contains == std::string::npos)
+                            {
+                                return false;
+                            }
+                        }
+
+                        if (attribComp == AttributeComparisonType::ATTRIBUTE_STARTS_WITH && !string_starts_with(val.second, itr->value))
+                        {
+                            return false;
+                        }
+
+                        if (attribComp == AttributeComparisonType::ATTRIBUTE_ENDS_WITH && !string_ends_with(val.second, itr->value))
+                        {
+                            return false;   
+                        }
+
+                        if (attribComp == AttributeComparisonType::ATTRIBUTE_CONTAINS_WORD && !string_contains_word(val.second, itr->value))
+                        {
+                            return false;   
+                        }
+
+                        if (attribComp == AttributeComparisonType::ATTRIBUTE_IS_OR_BEGIN_HYPHEN && !string_is_or_begin_hyphen(val.second, itr->value))
+                        {
+                            return false;   
+                        }
+
+                        return true;
                     });
 
                     if (find == m_attributes.end())
@@ -918,6 +1277,7 @@ namespace CTML
                     }
 
                     attribName.empty();
+                    attribComp = AttributeComparisonType::NONE;
                 }
             }
 
@@ -986,10 +1346,11 @@ namespace CTML
                 {
                     std::string attrValue = "";
 
-                    // try and get the next token as a lookahead
-                    if (tokens.size() > index + 1)
+                    // try and get the token after the ATTRIBUTE_COMPARE token as a lookahead
+                    // for construction, the compare token is ignored to just set the token value
+                    if (tokens.size() > index + 2)
                     {
-                        SelectorToken& next = tokens.at(index + 1);
+                        SelectorToken& next = tokens.at(index + 2);
                     
                         // found a value token, set the value string and skip
                         // this token after adding the attribute
