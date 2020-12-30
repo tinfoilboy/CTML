@@ -1276,7 +1276,7 @@ namespace CTML
                         return false;
                     }
 
-                    attribName.empty();
+                    attribName.clear();
                     attribComp = AttributeComparisonType::NONE;
                 }
             }
