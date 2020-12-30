@@ -3,7 +3,7 @@ version: '{build}'
 only_commits:
   files:
   - CMakeLists.txt
-  - appveyor.yml
+  - .appveyor.yml
   - include/
   - tests/
 
