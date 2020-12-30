@@ -175,9 +175,7 @@ And you use the following code:
 std::vector<Node*> matches = CTML::Document::QuerySelector(".one .two .three")
 ```
 
-The `matches` vector will only have one child, a pointer to the node for `div.three`. This method supports searching by any combination of element name, attribute name and value, class, and ID.
-
-**Note:** This method currently only supports searching attributes as by checking equality. Any other CSS selector equivalency tests are not supported currently.
+The `matches` vector will only have one child, a pointer to the node for `div.three`. This method supports searching by any combination of element name, attribute name and value (including using different attribute comparators, as can be found [here](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors/Attribute_selectors)), class, and ID.
 
 ## License
 
