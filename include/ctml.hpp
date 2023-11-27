@@ -60,7 +60,7 @@ namespace CTML
      * Optionally disable escaping double or single quote marks for text content
      * by setting the second value to false.
      */
-    inline std::string html_escape(std::string value, bool escape_quotes=true)
+    inline std::string html_escape(const std::string& value, bool escape_quotes=true)
     {
         std::string output = value;
 
@@ -884,7 +884,7 @@ namespace CTML
         /**
          * Set a single attribute for a Node to a value.
          */
-        Node& SetAttribute(std::string name, std::string value)
+        Node& SetAttribute(const std::string& name, std::string value)
         {
             if (name == "id")
             {
@@ -954,7 +954,7 @@ namespace CTML
         /**
          * Toggle the state of a class based on its name.
          */
-        Node& ToggleClass(std::string className)
+        Node& ToggleClass(const std::string& className)
         {
             std::vector<std::string>::iterator find = std::find(
                 m_classes.begin(),
@@ -1362,7 +1362,7 @@ namespace CTML
                         }
                     }
 
-                    m_attributes[token.value] = attrValue;
+                    m_attributes[token.value] = std::move(attrValue);
                 }
 
                 if (firstToken)
